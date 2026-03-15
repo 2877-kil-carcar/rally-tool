@@ -1,47 +1,12 @@
-function assign(){
+function renderResult() {
+  const result = document.getElementById("result");
+  if (!result) return;
 
-let used=new Set()
-
-let result=[]
-
-rallies.forEach(r=>{
-
-let count=r.need
-
-players.forEach(p=>{
-
-if(
-p.heroes.includes(r.hero)
-&& !used.has(p.name)
-&& count>0
-){
-
-result.push({
-rally:r.rally,
-hero:r.hero,
-player:p.name
-})
-
-used.add(p.name)
-
-count--
-
+  result.innerHTML = `
+    <h2>結果</h2>
+    <p>ここは次の段階で集結設定と自動振り分けを実装します。</p>
+  `;
 }
 
-})
-
-if(count>0){
-
-result.push({
-rally:r.rally,
-hero:r.hero,
-player:"�s��"
-})
-
-}
-
-})
-
-renderResult(result)
-
-}
+renderResult();
+showTab("heroes");

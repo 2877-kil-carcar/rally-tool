@@ -1,39 +1,47 @@
-let heroMaster = load("heroMaster")
+let heroMaster = load("heroMaster");
 
-function addHero(name){
+function addHero(name) {
+  const heroName = (name || "").trim();
 
-if(heroMaster.includes(name)){
-alert("�o�^�ς�")
-return
+  if (!heroName) {
+    alert("英雄名を入力してください");
+    return;
+  }
+
+  if (heroMaster.includes(heroName)) {
+    alert("登録済みです");
+    return;
+  }
+
+  heroMaster.push(heroName);
+  save("heroMaster", heroMaster);
+  renderHeroes();
+  renderPlayerHeroes();
 }
 
-heroMaster.push(name)
-
-save("heroMaster",heroMaster)
-
-renderHeroes()
-
+function deleteHero(index) {
+  heroMaster.splice(index, 1);
+  save("heroMaster", heroMaster);
+  renderHeroes();
+  renderPlayerHeroes();
 }
 
-function renderHeroes(){
+function renderHeroes() {
+  let html = `
+    <h2>英雄登録</h2>
+    <input id="heroName" placeholder="英雄名">
+    <button onclick="addHero(document.getElementById('heroName').value)">追加</button>
+    <table>
+      <tr><th>英雄</th><th></th></tr>
+  `;
 
-let html="<h2>�p�Y�o�^</h2>"
+  heroMaster.forEach((h, i) => {
+    html += `<tr><td>${h}</td><td><button onclick="deleteHero(${i})">削除</button></td></tr>`;
+  });
 
-html+=`
-<input id="heroName">
-<button onclick="addHero(heroName.value)">�ǉ�</button>
-`
+  html += `</table>`;
 
-html+="<table>"
-
-heroMaster.forEach(h=>{
-html+=`<tr><td>${h}</td></tr>`
-})
-
-html+="</table>"
-
-heroes.innerHTML=html
-
+  document.getElementById("heroes").innerHTML = html;
 }
 
-renderHeroes()
+renderHeroes();

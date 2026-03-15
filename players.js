@@ -1,42 +1,51 @@
-let players = load("players")
+let players = load("players");
 
-function addPlayer(name){
+function addPlayer(name) {
+  const playerName = (name || "").trim();
 
-if(players.some(p=>p.name===name)){
-alert("�o�^�ς�")
-return
+  if (!playerName) {
+    alert("プレイヤー名を入力してください");
+    return;
+  }
+
+  if (players.some(p => p.name === playerName)) {
+    alert("登録済みです");
+    return;
+  }
+
+  players.push({
+    name: playerName,
+    heroes: []
+  });
+
+  save("players", players);
+  renderPlayers();
+  renderPlayerHeroes();
 }
 
-players.push({
-name:name,
-heroes:[]
-})
-
-save("players",players)
-
-renderPlayers()
-
+function deletePlayer(index) {
+  players.splice(index, 1);
+  save("players", players);
+  renderPlayers();
+  renderPlayerHeroes();
 }
 
-function renderPlayers(){
+function renderPlayers() {
+  let html = `
+    <h2>プレイヤー登録</h2>
+    <input id="playerName" placeholder="プレイヤー名">
+    <button onclick="addPlayer(document.getElementById('playerName').value)">追加</button>
+    <table>
+      <tr><th>プレイヤー</th><th></th></tr>
+  `;
 
-let html="<h2>�v���C���[�o�^</h2>"
+  players.forEach((p, i) => {
+    html += `<tr><td>${p.name}</td><td><button onclick="deletePlayer(${i})">削除</button></td></tr>`;
+  });
 
-html+=`
-<input id="playerName">
-<button onclick="addPlayer(playerName.value)">�ǉ�</button>
-`
+  html += `</table>`;
 
-html+="<table>"
-
-players.forEach(p=>{
-html+=`<tr><td>${p.name}</td></tr>`
-})
-
-html+="</table>"
-
-playersDiv.innerHTML=html
-
+  document.getElementById("players").innerHTML = html;
 }
 
-renderPlayers()
+renderPlayers();

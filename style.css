@@ -1,26 +1,36 @@
-body{
-font-family:sans-serif;
-padding:20px;
-background:#f5f5f5
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background: #f5f5f5;
 }
 
-button{
-padding:8px 14px;
-margin:4px;
-cursor:pointer
+button {
+  padding: 8px 14px;
+  margin: 4px;
+  cursor: pointer;
 }
 
-table{
-border-collapse:collapse;
-background:white
+input, select {
+  padding: 6px;
+  margin: 4px;
 }
 
-td,th{
-border:1px solid #ccc;
-padding:6px
+table {
+  border-collapse: collapse;
+  background: white;
+  margin-top: 10px;
 }
 
-.tab{
-display:none;
-margin-top:20px
+td, th {
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+}
+
+.tab {
+  display: none;
+  margin-top: 20px;
+}
+
+.tabs {
+  margin-bottom: 12px;
 }

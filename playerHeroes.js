@@ -1,55 +1,70 @@
-function renderPlayerHeroes(){
+function renderPlayerHeroes() {
+  const container = document.getElementById("playerHeroes");
 
-let html="<h2>�����p�Y�o�^</h2>"
+  if (!container) return;
 
-html+=`<select id="playerSelect">`
+  if (players.length === 0) {
+    container.innerHTML = "<h2>所持英雄登録</h2><p>先にプレイヤーを登録してください。</p>";
+    return;
+  }
 
-players.forEach(p=>{
-html+=`<option>${p.name}</option>`
-})
+  let html = `
+    <h2>所持英雄登録</h2>
+    <select id="playerSelect" onchange="renderHeroCheckbox()">
+  `;
 
-html+="</select>"
+  players.forEach(p => {
+    html += `<option value="${p.name}">${p.name}</option>`;
+  });
 
-html+="<div id='heroList'></div>"
+  html += `
+    </select>
+    <div id="heroList"></div>
+    <button onclick="savePlayerHeroes()">保存</button>
+  `;
 
-html+="<button onclick='savePlayerHeroes()'>�ۑ�</button>"
-
-playerHeroes.innerHTML=html
-
-renderHeroCheckbox()
-
+  container.innerHTML = html;
+  renderHeroCheckbox();
 }
 
-function renderHeroCheckbox(){
+function renderHeroCheckbox() {
+  const playerSelect = document.getElementById("playerSelect");
+  const heroList = document.getElementById("heroList");
 
-let html=""
+  if (!playerSelect || !heroList) return;
 
-heroMaster.forEach(h=>{
+  const player = players.find(p => p.name === playerSelect.value);
+  const ownedHeroes = player ? player.heroes : [];
 
-html+=`
-<label>
-<input type="checkbox" value="${h}">
-${h}
-</label><br>
-`
+  let html = "";
 
-})
+  heroMaster.forEach(h => {
+    const checked = ownedHeroes.includes(h) ? "checked" : "";
+    html += `
+      <label>
+        <input type="checkbox" value="${h}" ${checked}>
+        ${h}
+      </label><br>
+    `;
+  });
 
-heroList.innerHTML=html
-
+  heroList.innerHTML = html;
 }
 
-function savePlayerHeroes(){
+function savePlayerHeroes() {
+  const playerSelect = document.getElementById("playerSelect");
+  const heroList = document.getElementById("heroList");
 
-let name = playerSelect.value
+  if (!playerSelect || !heroList) return;
 
-let checked=[...heroList.querySelectorAll("input:checked")]
-.map(x=>x.value)
+  const checked = [...heroList.querySelectorAll("input:checked")].map(x => x.value);
+  const player = players.find(p => p.name === playerSelect.value);
 
-let p = players.find(x=>x.name===name)
+  if (!player) return;
 
-p.heroes = checked
-
-save("players",players)
-
+  player.heroes = checked;
+  save("players", players);
+  alert("保存しました");
 }
+
+renderPlayerHeroes();

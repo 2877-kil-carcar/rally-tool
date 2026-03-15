@@ -1,44 +1,30 @@
-!DOCTYPE html
-html
-head
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>é›†çµæŒ¯ã‚Šåˆ†ã‘ãƒ„ãƒ¼ãƒ«</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>é›†çµæŒ¯ã‚Šåˆ†ã‘ãƒ„ãƒ¼ãƒ«</h1>
 
-meta charset=UTF-8
+  <div class="tabs">
+    <button onclick="showTab('heroes')">è‹±é›„</button>
+    <button onclick="showTab('players')">ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼</button>
+    <button onclick="showTab('playerHeroes')">æ‰€æŒè‹±é›„</button>
+    <button onclick="showTab('result')">çµæœ</button>
+  </div>
 
-titleWŒ‹U‚è•ª‚¯ƒc[ƒ‹title
+  <div id="heroes" class="tab"></div>
+  <div id="players" class="tab"></div>
+  <div id="playerHeroes" class="tab"></div>
+  <div id="result" class="tab"></div>
 
-link rel=stylesheet href=cssstyle.css
-
-head
-
-body
-
-h1WŒ‹U‚è•ª‚¯ƒc[ƒ‹h1
-
-div class=tabs
-
-button onclick=showTab('heroes')‰p—Ybutton
-button onclick=showTab('players')ƒvƒŒƒCƒ„[button
-button onclick=showTab('playerHeroes')Š‰p—Ybutton
-button onclick=showTab('rally')WŒ‹İ’èbutton
-button onclick=showTab('result')Œ‹‰Êbutton
-
-div
-
-div id=heroes class=tabdiv
-div id=players class=tabdiv
-div id=playerHeroes class=tabdiv
-div id=rally class=tabdiv
-div id=result class=tabdiv
-
-script src=dataconstants.jsscript
-
-script src=jsstorage.jsscript
-
-script src=jsheroes.jsscript
-script src=jsplayers.jsscript
-script src=jsplayerHeroes.jsscript
-script src=jsrally.jsscript
-script src=jsassign.jsscript
-
-body
-html
+  <script src="storage.js"></script>
+  <script src="heroes.js"></script>
+  <script src="players.js"></script>
+  <script src="playerHeroes.js"></script>
+  <script src="assign.js"></script>
+</body>
+</html>
