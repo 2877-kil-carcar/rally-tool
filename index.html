@@ -5,46 +5,89 @@
 <title>集結振り分けツール</title>
 
 <style>
-body{font-family:sans-serif;padding:20px}
-table{border-collapse:collapse;margin-bottom:20px}
+body{font-family:sans-serif;padding:20px;background:#f7f7f7}
+h2{margin-top:30px}
+table{border-collapse:collapse;margin-bottom:20px;background:white}
 td,th{border:1px solid #ccc;padding:6px}
-button{padding:8px 14px;margin:5px}
+button{padding:6px 12px;margin:5px;cursor:pointer}
+input,select{padding:6px;margin:4px}
+.section{background:white;padding:15px;border-radius:6px;margin-bottom:20px}
 </style>
 
 </head>
 <body>
 
-<h2>英雄保持</h2>
+<div class="section">
+<h2>英雄保持登録</h2>
 
-英雄 <input id="hero">
-プレイヤー <input id="player">
+英雄 
+<select id="hero">
+<option>ノラ</option>
+<option>ボーガン</option>
+<option>ジェロニモ</option>
+<option>フリント</option>
+</select>
+
+プレイヤー 
+<input id="player" placeholder="名前">
+
 <button onclick="addHero()">追加</button>
 
 <table id="heroTable">
-<tr><th>英雄</th><th>プレイヤー</th></tr>
+<tr>
+<th>英雄</th>
+<th>プレイヤー</th>
+<th></th>
+</tr>
 </table>
+</div>
 
 
+<div class="section">
 <h2>集結設定</h2>
 
-集結 <input id="rally">
-英雄 <input id="rallyHero">
-人数 <input id="need" type="number">
+集結 <input id="rally" placeholder="A">
+
+英雄 
+<select id="rallyHero">
+<option>ノラ</option>
+<option>ボーガン</option>
+<option>ジェロニモ</option>
+<option>フリント</option>
+</select>
+
+人数 <input id="need" type="number" min="1">
 
 <button onclick="addRally()">追加</button>
 
 <table id="rallyTable">
-<tr><th>集結</th><th>英雄</th><th>人数</th></tr>
+<tr>
+<th>集結</th>
+<th>英雄</th>
+<th>人数</th>
+<th></th>
+</tr>
 </table>
+</div>
 
 
+<div class="section">
 <button onclick="assign()">自動振り分け</button>
+<button onclick="resetData()">全データ削除</button>
+</div>
 
+
+<div class="section">
 <h2>結果</h2>
 
 <table id="result">
-<tr><th>集結</th><th>英雄</th><th>プレイヤー</th></tr>
+<tr>
+<th>集結</th>
+<th>英雄</th>
+<th>プレイヤー</th>
+</tr>
 </table>
+</div>
 
 
 <script>
@@ -60,26 +103,56 @@ localStorage.setItem("rallies",JSON.stringify(rallies))
 function render(){
 
 let h=""
-heroes.forEach(x=>{
-h+=`<tr><td>${x.hero}</td><td>${x.player}</td></tr>`
+heroes.forEach((x,i)=>{
+h+=`
+<tr>
+<td>${x.hero}</td>
+<td>${x.player}</td>
+<td><button onclick="delHero(${i})">削除</button></td>
+</tr>`
 })
-heroTable.innerHTML="<tr><th>英雄</th><th>プレイヤー</th></tr>"+h
+
+heroTable.innerHTML=
+"<tr><th>英雄</th><th>プレイヤー</th><th></th></tr>"+h
+
 
 let r=""
-rallies.forEach(x=>{
-r+=`<tr><td>${x.rally}</td><td>${x.hero}</td><td>${x.need}</td></tr>`
+rallies.forEach((x,i)=>{
+r+=`
+<tr>
+<td>${x.rally}</td>
+<td>${x.hero}</td>
+<td>${x.need}</td>
+<td><button onclick="delRally(${i})">削除</button></td>
+</tr>`
 })
-rallyTable.innerHTML="<tr><th>集結</th><th>英雄</th><th>人数</th></tr>"+r
+
+rallyTable.innerHTML=
+"<tr><th>集結</th><th>英雄</th><th>人数</th><th></th></tr>"+r
+
 }
+
 
 function addHero(){
 
+let h=hero.value.trim()
+let p=player.value.trim()
+
+if(!p){
+alert("プレイヤー名を入力してください")
+return
+}
+
+if(heroes.some(x=>x.hero===h && x.player===p)){
+alert("すでに登録されています")
+return
+}
+
 heroes.push({
-hero:hero.value,
-player:player.value
+hero:h,
+player:p
 })
 
-hero.value=""
 player.value=""
 
 save()
@@ -87,16 +160,25 @@ render()
 
 }
 
+
 function addRally(){
 
+let ra=rally.value.trim()
+let he=rallyHero.value
+let ne=Number(need.value)
+
+if(!ra || !ne){
+alert("集結と人数を入力してください")
+return
+}
+
 rallies.push({
-rally:rally.value,
-hero:rallyHero.value,
-need:Number(need.value)
+rally:ra,
+hero:he,
+need:ne
 })
 
 rally.value=""
-rallyHero.value=""
 need.value=""
 
 save()
@@ -104,21 +186,42 @@ render()
 
 }
 
+
+function delHero(i){
+
+heroes.splice(i,1)
+save()
+render()
+
+}
+
+function delRally(i){
+
+rallies.splice(i,1)
+save()
+render()
+
+}
+
+
 function assign(){
 
 let used=new Set()
 
 let res=""
 
-rallies.forEach(r=>{
+let sorted=[...rallies].sort((a,b)=>a.rally.localeCompare(b.rally))
+
+sorted.forEach(r=>{
 
 let count=r.need
 
 heroes.forEach(h=>{
 
-if(h.hero==r.hero && !used.has(h.player) && count>0){
+if(h.hero===r.hero && !used.has(h.player) && count>0){
 
-res+=`<tr>
+res+=`
+<tr>
 <td>${r.rally}</td>
 <td>${r.hero}</td>
 <td>${h.player}</td>
@@ -133,7 +236,8 @@ count--
 
 if(count>0){
 
-res+=`<tr>
+res+=`
+<tr>
 <td>${r.rally}</td>
 <td>${r.hero}</td>
 <td>不在</td>
@@ -143,7 +247,23 @@ res+=`<tr>
 
 })
 
-result.innerHTML="<tr><th>集結</th><th>英雄</th><th>プレイヤー</th></tr>"+res
+result.innerHTML=
+"<tr><th>集結</th><th>英雄</th><th>プレイヤー</th></tr>"+res
+
+}
+
+
+function resetData(){
+
+if(!confirm("全データ削除しますか？")) return
+
+heroes=[]
+rallies=[]
+
+save()
+render()
+
+result.innerHTML=""
 
 }
 
