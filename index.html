@@ -1,33 +1,73 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>集結振り分けツール</title>
-  <link rel="stylesheet" href="style.css">
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>集結振り分けツール</title>
+
+<link rel="stylesheet" href="style.css">
+
 </head>
+
+
 <body>
-  <h1>集結振り分けツール</h1>
 
-  <div class="tabs">
-    <button onclick="showTab('heroes')">英雄</button>
-    <button onclick="showTab('players')">プレイヤー</button>
-    <button onclick="showTab('rally')">集結</button>
-    <button onclick="showTab('playerHeroes')">所持英雄</button>
-    <button onclick="showTab('result')">結果</button>
-  </div>
+<h1>集結振り分けツール</h1>
 
-  <div id="heroes" class="tab"></div>
-  <div id="rally" class="tab"></div>
-  <div id="players" class="tab"></div>
-  <div id="playerHeroes" class="tab"></div>
-  <div id="result" class="tab"></div>
 
-  <script src="storage.js"></script>
-  <script src="heroes.js"></script>
-  <script src="players.js"></script>
-  <script src="rally.js"></script>
-  <script src="playerHeroes.js"></script>
-  <script src="assign.js"></script>
+<div class="tabs">
+
+<button onclick="showTab('heroes')">英雄</button>
+
+<button onclick="showTab('players')">プレイヤー</button>
+
+<button onclick="showTab('playerHeroes')">所持英雄</button>
+
+<button onclick="showTab('rally')">集結</button>
+
+<button onclick="showTab('result')">結果</button>
+
+</div>
+
+
+<div id="heroes" class="tab"></div>
+
+<div id="players" class="tab"></div>
+
+<div id="playerHeroes" class="tab"></div>
+
+<div id="rally" class="tab"></div>
+
+<div id="result" class="tab">
+
+<button onclick="assign()">自動振り分け</button>
+
+</div>
+
+
+<script src="storage.js"></script>
+
+<script src="heroes.js"></script>
+
+<script src="players.js"></script>
+
+<script src="playerHeroes.js"></script>
+
+<script src="rally.js"></script>
+
+<script src="assign.js"></script>
+
+
+<script>
+
+showTab("heroes")
+
+</script>
+
 </body>
+
 </html>
