@@ -13,7 +13,6 @@ return array
 }
 
 
-
 function assign(){
 
 let used=new Set()
@@ -26,15 +25,12 @@ rallies.forEach(r=>{
 let count=r.need
 
 
-// 英雄を持っているプレイヤー取得
 let candidates=players.filter(p=>
 
 p.heroes.includes(r.hero)
 
 )
 
-
-// ランダム化
 candidates=shuffle([...candidates])
 
 
@@ -79,13 +75,9 @@ renderResult(result)
 }
 
 
-
 function renderResult(data){
 
 let html=`<h2>振り分け結果</h2>`
-
-html+=`<button onclick="assign()">再振り分け</button>`
-
 
 html+=`
 <table>
@@ -95,7 +87,6 @@ html+=`
 <th>プレイヤー</th>
 </tr>
 `
-
 
 data.forEach(r=>{
 
@@ -109,10 +100,8 @@ html+=`
 
 })
 
-
 html+=`</table>`
 
-
-document.getElementById("result").innerHTML=html
+document.getElementById("resultTable").innerHTML=html
 
 }
