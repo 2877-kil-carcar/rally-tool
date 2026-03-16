@@ -86,7 +86,8 @@ return
 rallies.push({
 rally:leader,
 rate:rate,
-heroes:heroes
+heroes:heroes,
+active:true
 })
 
 save("rallies",rallies)
@@ -128,6 +129,16 @@ n.disabled=true
 }else{
 n.disabled=false
 }
+
+}
+
+function toggleRally(i){
+
+rallies[i].active=!rallies[i].active
+
+save("rallies",rallies)
+
+renderRally()
 
 }
 
@@ -192,6 +203,7 @@ html+=`
 html+=`<table>
 <tr>
 <th>集結主</th>
+<th>参加</th>
 <th>割合</th>
 <th>英雄</th>
 <th>人数</th>
@@ -206,10 +218,21 @@ r.heroes.forEach((h,index)=>{
 html+=`
 <tr>
 <td>${index===0 ? r.rally : ""}</td>
+
+<td>
+${index===0 ?
+`<label class="switch">
+<input type="checkbox" ${r.active!==false?"checked":""} onchange="toggleRally(${i})">
+<span class="slider"></span>
+</label>`
+:""}
+</td>
+
 <td>${index===0 ? r.rate : ""}</td>
+
 <td>${h.hero}</td>
+
 <td>${h.need}</td>
-<td>${index===0 ? `<button onclick="deleteRally(${i})">削除</button>` : ""}</td>
 </tr>
 `
 

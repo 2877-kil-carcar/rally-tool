@@ -20,11 +20,15 @@ let used=new Set()
 
 let result=[]
 
-let leaders=new Set(rallies.map(r=>r.rally))
+let leaders=new Set(
+rallies
+.filter(r=>r.active!==false)
+.map(r=>r.rally)
+)
 
 leaders.forEach(l=>used.add(l))
 
-rallies.forEach(r=>{
+rallies.filter(r=>r.active!==false).forEach(r=>{
 
 r.heroes.forEach(h=>{
 
