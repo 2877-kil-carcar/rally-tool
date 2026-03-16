@@ -20,26 +20,34 @@ let used=new Set()
 
 let result=[]
 
+// 集結主一覧
 let leaders=new Set(
-rallies
-.filter(r=>r.active!==false)
-.map(r=>r.rally)
+rallies.filter(r=>r.active!==false).map(r=>r.rally)
 )
 
+// 集結主は最初から使用済み
 leaders.forEach(l=>used.add(l))
 
 rallies.filter(r=>r.active!==false).forEach(r=>{
+
+// 集結主プレイヤー
+let leaderPlayer=players.find(p=>p.name===r.rally)
+
+let rallyAlliance=leaderPlayer?leaderPlayer.alliance:""
 
 r.heroes.forEach(h=>{
 
 let count=h.need
 
+// 候補
 let candidates=players.filter(p=>
-p.active!==false &&
-p.name!==r.rally &&
-!leaders.has(p.name) &&
-!used.has(p.name) &&
-p.heroes.includes(h.hero)
+
+p.active!==false &&              // 参加ON
+p.name!==r.rally &&              // 自分の集結は乗らない
+!leaders.has(p.name) &&          // 他の集結主も乗らない
+!used.has(p.name) &&             // 他集結に乗らない
+p.heroes.includes(h.hero) &&     // 英雄所持
+p.alliance===rallyAlliance       // 同盟一致
 )
 
 candidates=shuffle([...candidates])
@@ -91,18 +99,38 @@ if(!groups[r.rally]) groups[r.rally]=[]
 groups[r.rally].push(r)
 })
 
+// 同盟→集結主順
+let sortedRallies=[...new Set(data.map(x=>x.rally))].sort((a,b)=>{
+
+let pa=players.find(p=>p.name===a)
+let pb=players.find(p=>p.name===b)
+
+let aa=pa&&pa.alliance?pa.alliance:""
+let ab=pb&&pb.alliance?pb.alliance:""
+
+let c=aa.localeCompare(ab)
+if(c!==0) return c
+
+return a.localeCompare(b)
+
+})
+
 window.copyData={}
 
-Object.keys(groups).forEach(leader=>{
+sortedRallies.forEach(leader=>{
 
 let rally=rallies.find(x=>x.rally===leader)
-let rate=rally ? rally.rate : ""
+let rate=rally?rally.rate:""
+
+let leaderPlayer=players.find(p=>p.name===leader)
+let alliance=leaderPlayer&&leaderPlayer.alliance?leaderPlayer.alliance:"未所属"
 
 html+=`<div class="result-group">`
 
-html+=`<h3>${leader} ${rate}</h3>`
+html+=`<h3>${alliance}</h3>`
+html+=`<div class="result-row"><strong>${leader} ${rate}</strong></div>`
 
-let text=`${leader} ${rate}\n`
+let text=`${alliance}\n${leader} ${rate}\n`
 
 groups[leader].forEach(r=>{
 
@@ -123,6 +151,7 @@ copyData[leader]=text
 document.getElementById("resultTable").innerHTML=html
 
 }
+
 function copyLeader(name){
 
 navigator.clipboard.writeText(copyData[name])

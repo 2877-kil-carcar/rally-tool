@@ -1,76 +1,68 @@
-let heroMaster = load("heroMaster");
+let heroMaster=load("heroMaster")
 
-function addHero(name) {
-  const heroName = (name || "").trim();
+function addHero(name){
 
-  if (!heroName) {
-    alert("英雄名を入力してください");
-    return;
-  }
+let hero=(name||"").trim()
 
-  if (heroMaster.includes(heroName)) {
-    alert("登録済みです");
-    return;
-  }
-
-  heroMaster.push(heroName);
-  save("heroMaster", heroMaster);
-
-  renderHeroes();
-
-  if (typeof renderPlayerHeroes === "function") {
-    renderPlayerHeroes();
-  }
-
-  if (typeof renderRally === "function") {
-    renderRally();
-  }
+if(!hero){
+alert("英雄名を入力してください")
+return
 }
 
-function deleteHero(index) {
-  const heroName = heroMaster[index];
-
-  heroMaster.splice(index, 1);
-
-  players.forEach(p => {
-    p.heroes = (p.heroes || []).filter(h => h !== heroName);
-  });
-  save("players", players);
-
-  rallies.forEach(r => {
-    r.heroes = (r.heroes || []).filter(h => h.hero !== heroName);
-  });
-  save("rallies", rallies);
-
-  save("heroMaster", heroMaster);
-
-  renderHeroes();
-
-  if (typeof renderPlayerHeroes === "function") {
-    renderPlayerHeroes();
-  }
-
-  if (typeof renderRally === "function") {
-    renderRally();
-  }
+if(heroMaster.includes(hero)){
+alert("登録済みです")
+return
 }
 
-function renderHeroes() {
-  let html = `
-    <h2>英雄登録</h2>
-    <input id="heroName" placeholder="英雄名">
-    <button onclick="addHero(document.getElementById('heroName').value)">追加</button>
-    <table>
-      <tr><th>英雄</th><th></th></tr>
-  `;
+heroMaster.push(hero)
 
-  heroMaster.forEach((h, i) => {
-    html += `<tr><td>${h}</td><td><button onclick="deleteHero(${i})">削除</button></td></tr>`;
-  });
+save("heroMaster",heroMaster)
 
-  html += `</table>`;
+renderHeroes()
 
-  document.getElementById("heroes").innerHTML = html;
 }
 
-renderHeroes();
+function deleteHero(i){
+
+heroMaster.splice(i,1)
+
+save("heroMaster",heroMaster)
+
+renderHeroes()
+
+}
+
+function renderHeroes(){
+
+let html=`
+<h2>英雄登録</h2>
+
+<input id="heroName" placeholder="英雄名">
+
+<button onclick="addHero(document.getElementById('heroName').value)">追加</button>
+
+<table>
+<tr>
+<th>英雄</th>
+<th></th>
+</tr>
+`
+
+heroMaster.forEach((h,i)=>{
+
+html+=`
+<tr>
+<td>${h}</td>
+<td><button onclick="deleteHero(${i})">削除</button></td>
+</tr>
+`
+
+})
+
+html+=`</table>`
+
+document.getElementById("heroes").innerHTML=html
+
+}
+
+renderHeroes()

@@ -1,111 +1,5 @@
 let rallies = load("rallies")
 
-function addRally(){
-
-let leader=document.getElementById("rallyLeader").value.trim()
-let r1 = Number(document.getElementById("rate1").value)
-let r2 = Number(document.getElementById("rate2").value)
-let r3 = Number(document.getElementById("rate3").value)
-
-if(isNaN(r1) || isNaN(r2) || isNaN(r3)){
-alert("割合を入力してください")
-return
-}
-
-if(r1 + r2 + r3 !== 100){
-alert("割合の合計は100にしてください")
-return
-}
-
-let rate = `${r1}.${r2}.${r3}`
-
-if(!leader){
-alert("集結主を選択してください")
-return
-}
-
-if(rallies.some(r=>r.rally===leader)){
-alert("同じ集結主は登録できません")
-return
-}
-
-function getHero(heroId,needId){
-
-let hero=document.getElementById(heroId).value
-let need=Number(document.getElementById(needId).value)
-
-if(hero==="") return null
-
-if(!need){
-alert("人数を入力してください")
-throw "人数エラー"
-}
-
-return {hero:hero,need:need}
-
-}
-
-let heroes=[]
-
-try{
-
-let h1=getHero("hero1","need1")
-let h2=getHero("hero2","need2")
-let h3=getHero("hero3","need3")
-let h4=getHero("hero4","need4")
-
-if(h1) heroes.push(h1)
-if(h2) heroes.push(h2)
-if(h3) heroes.push(h3)
-if(h4) heroes.push(h4)
-
-}catch{
-return
-}
-
-if(heroes.length===0){
-alert("英雄を登録してください")
-return
-}
-
-let names=heroes.map(h=>h.hero)
-let unique=new Set(names)
-
-if(names.length!==unique.size){
-alert("同じ英雄は登録できません")
-return
-}
-
-let total=heroes.reduce((s,h)=>s+h.need,0)
-
-if(total>4){
-alert("人数合計は4まで")
-return
-}
-
-rallies.push({
-rally:leader,
-rate:rate,
-heroes:heroes,
-active:true
-})
-
-save("rallies",rallies)
-
-renderRally()
-
-}
-
-function deleteRally(i){
-
-rallies.splice(i,1)
-
-save("rallies",rallies)
-
-renderRally()
-
-}
-
 function heroOptions(){
 
 let html=`<option value="">なし</option>`
@@ -118,17 +12,49 @@ return html
 
 }
 
-function updateNeed(hero,need){
+function addRally(){
 
-let h=document.getElementById(hero)
-let n=document.getElementById(need)
+let leader=document.getElementById("rallyLeader").value
 
-if(h.value===""){
-n.value=""
-n.disabled=true
-}else{
-n.disabled=false
+let r1=Number(rate1.value)
+let r2=Number(rate2.value)
+let r3=Number(rate3.value)
+
+if(r1+r2+r3!==100){
+alert("割合合計は100にしてください")
+return
 }
+
+let rate=`${r1}.${r2}.${r3}`
+
+let heroes=[]
+
+function getHero(h,n){
+
+let hero=document.getElementById(h).value
+let need=Number(document.getElementById(n).value)
+
+if(!hero) return
+
+heroes.push({hero:hero,need:need})
+
+}
+
+getHero("hero1","need1")
+getHero("hero2","need2")
+getHero("hero3","need3")
+getHero("hero4","need4")
+
+rallies.push({
+rally:leader,
+rate:rate,
+heroes:heroes,
+active:true
+})
+
+save("rallies",rallies)
+
+renderRally()
 
 }
 
@@ -144,95 +70,139 @@ renderRally()
 
 function renderRally(){
 
-let html=`<h2>集結設定</h2>`
-
-html+=`<div class="rally-header">
+let html=`
+<h2>集結設定</h2>
 
 集結主
-<select id="rallyLeader">`
+<select id="rallyLeader">
+`
 
-if(players.length===0){
-html+=`<option value="">プレイヤー未登録</option>`
-}else{
+// プレイヤーソート
+let sortedPlayers = players.slice().sort((a,b)=>{
 
-html+=`<option value="">選択</option>`
+let aAlliance=a.alliance||""
+let bAlliance=b.alliance||""
 
-players.forEach(p=>{
-html+=`<option value="${p.name}">${p.name}</option>`
+let c=aAlliance.localeCompare(bAlliance)
+if(c!==0) return c
+
+return a.name.localeCompare(b.name)
+
 })
 
-}
+// 同盟グループ
+let playerGroups={}
 
-html+=`</select>
+sortedPlayers.forEach(p=>{
 
-割合
-<input id="rate1" type="number" min="0" max="999" placeholder="45">
-.
-<input id="rate2" type="number" min="0" max="999" placeholder="5">
-.
-<input id="rate3" type="number" min="0" max="999" placeholder="50">
+let key=p.alliance||"未所属"
 
-</div>`
+if(!playerGroups[key]) playerGroups[key]=[]
+
+playerGroups[key].push(p)
+
+})
+
+// プルダウン生成
+Object.keys(playerGroups).forEach(alliance=>{
+
+html+=`<optgroup label="${alliance}">`
+
+playerGroups[alliance].forEach(p=>{
+html+=`<option>${p.name}</option>`
+})
+
+html+=`</optgroup>`
+
+})
 
 html+=`
+</select>
 
+割合
+<input id="rate1" class="rate-input">
+.
+<input id="rate2" class="rate-input">
+.
+<input id="rate3" class="rate-input">
+`
+
+html+=`
 <div class="rally-row">
-英雄 <select id="hero1" onchange="updateNeed('hero1','need1')">${heroOptions()}</select>
+英雄 <select id="hero1">${heroOptions()}</select>
 人数 <input id="need1" type="number" min="1" max="4">
 </div>
 
 <div class="rally-row">
-英雄 <select id="hero2" onchange="updateNeed('hero2','need2')">${heroOptions()}</select>
-人数 <input id="need2" type="number" min="1" max="4">
+英雄 <select id="hero2">${heroOptions()}</select>
+人数 <input id="need2" type="number">
 </div>
 
 <div class="rally-row">
-英雄 <select id="hero3" onchange="updateNeed('hero3','need3')">${heroOptions()}</select>
-人数 <input id="need3" type="number" min="1" max="4">
+英雄 <select id="hero3">${heroOptions()}</select>
+人数 <input id="need3" type="number">
 </div>
 
 <div class="rally-row">
-英雄 <select id="hero4" onchange="updateNeed('hero4','need4')">${heroOptions()}</select>
-人数 <input id="need4" type="number" min="1" max="4">
+英雄 <select id="hero4">${heroOptions()}</select>
+人数 <input id="need4" type="number">
 </div>
 
 <button onclick="addRally()">追加</button>
-
 `
 
-html+=`<table>
+// rallyを同盟グループ化
+let rallyGroups={}
+
+rallies.forEach(r=>{
+
+let player=players.find(p=>p.name===r.rally)
+
+let alliance=player?player.alliance:"未所属"
+
+if(!rallyGroups[alliance]) rallyGroups[alliance]=[]
+
+rallyGroups[alliance].push(r)
+
+})
+
+// 表示
+Object.keys(rallyGroups).forEach(alliance=>{
+
+html+=`<h3>${alliance}</h3>`
+
+html+=`
+<table>
 <tr>
 <th>集結主</th>
 <th>参加</th>
 <th>割合</th>
 <th>英雄</th>
 <th>人数</th>
-<th></th>
 </tr>
 `
 
-rallies.forEach((r,i)=>{
+rallyGroups[alliance].forEach((r,i)=>{
 
 r.heroes.forEach((h,index)=>{
 
 html+=`
 <tr>
-<td>${index===0 ? r.rally : ""}</td>
+
+<td>${index===0?r.rally:""}</td>
 
 <td>
-${index===0 ?
-`<label class="switch">
-<input type="checkbox" ${r.active!==false?"checked":""} onchange="toggleRally(${i})">
+${index===0?`<label class="switch">
+<input type="checkbox" ${r.active?"checked":""} onchange="toggleRally(${i})">
 <span class="slider"></span>
-</label>`
-:""}
+</label>`:""}
 </td>
 
-<td>${index===0 ? r.rate : ""}</td>
+<td>${index===0?r.rate:""}</td>
 
 <td>${h.hero}</td>
-
 <td>${h.need}</td>
+
 </tr>
 `
 
@@ -242,6 +212,10 @@ ${index===0 ?
 
 html+=`</table>`
 
+})
+
 document.getElementById("rally").innerHTML=html
 
 }
+
+renderRally()

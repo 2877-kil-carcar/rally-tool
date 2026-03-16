@@ -19,6 +19,7 @@ el.style.display="block"
 }
 
 if(id==="heroes" && typeof renderHeroes==="function") renderHeroes()
+if(id==="alliances" && typeof renderAlliances==="function") renderAlliances()
 if(id==="players" && typeof renderPlayers==="function") renderPlayers()
 if(id==="playerHeroes" && typeof renderPlayerHeroes==="function") renderPlayerHeroes()
 if(id==="rally" && typeof renderRally==="function") renderRally()
