@@ -179,6 +179,7 @@ html+=`
 <th>割合</th>
 <th>英雄</th>
 <th>人数</th>
+<th></th>
 </tr>
 `
 
@@ -202,6 +203,9 @@ ${index===0?`<label class="switch">
 
 <td>${h.hero}</td>
 <td>${h.need}</td>
+<td>
+${index===0?`<button onclick="deleteRally(${i})">削除</button>`:""}
+</td>
 
 </tr>
 `
@@ -215,6 +219,18 @@ html+=`</table>`
 })
 
 document.getElementById("rally").innerHTML=html
+
+}
+
+function deleteRally(i){
+
+if(!confirm("削除しますか？")) return
+
+rallies.splice(i,1)
+
+save("rallies",rallies)
+
+renderRally()
 
 }
 
