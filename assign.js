@@ -31,12 +31,11 @@ r.heroes.forEach(h=>{
 let count=h.need
 
 let candidates=players.filter(p=>
-
+p.active!==false &&
 p.name!==r.rally &&
 !leaders.has(p.name) &&
 !used.has(p.name) &&
 p.heroes.includes(h.hero)
-
 )
 
 candidates=shuffle([...candidates])

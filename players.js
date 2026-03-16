@@ -13,10 +13,11 @@ function addPlayer(name) {
     return;
   }
 
-  players.push({
-    name: playerName,
-    heroes: []
-  });
+players.push({
+name: playerName,
+heroes: [],
+active: true
+});
 
   save("players", players);
 
@@ -57,16 +58,44 @@ function renderPlayers() {
     <input id="playerName" placeholder="プレイヤー名">
     <button onclick="addPlayer(document.getElementById('playerName').value)">追加</button>
     <table>
-      <tr><th>プレイヤー</th><th></th></tr>
+<tr>
+<th>プレイヤー</th>
+<th>参加</th>
+<th></th>
+</tr>
   `;
 
   players.forEach((p, i) => {
-    html += `<tr><td>${p.name}</td><td><button onclick="deletePlayer(${i})">削除</button></td></tr>`;
-  });
+html += `
+<tr>
+<td>${p.name}</td>
+
+<td>
+<label class="switch">
+<input type="checkbox" ${p.active!==false?"checked":""} onchange="togglePlayer(${i})">
+<span class="slider"></span>
+</label>
+</td>
+
+<td>
+<button onclick="deletePlayer(${i})">削除</button>
+</td>
+</tr>
+`  });
 
   html += `</table>`;
 
   document.getElementById("players").innerHTML = html;
+}
+
+function togglePlayer(i){
+
+players[i].active=!players[i].active
+
+save("players",players)
+
+renderPlayers()
+
 }
 
 renderPlayers();
