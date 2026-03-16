@@ -15,15 +15,44 @@ function addHero(name) {
 
   heroMaster.push(heroName);
   save("heroMaster", heroMaster);
+
   renderHeroes();
-  renderPlayerHeroes();
+
+  if (typeof renderPlayerHeroes === "function") {
+    renderPlayerHeroes();
+  }
+
+  if (typeof renderRally === "function") {
+    renderRally();
+  }
 }
 
 function deleteHero(index) {
+  const heroName = heroMaster[index];
+
   heroMaster.splice(index, 1);
+
+  players.forEach(p => {
+    p.heroes = (p.heroes || []).filter(h => h !== heroName);
+  });
+  save("players", players);
+
+  rallies.forEach(r => {
+    r.heroes = (r.heroes || []).filter(h => h.hero !== heroName);
+  });
+  save("rallies", rallies);
+
   save("heroMaster", heroMaster);
+
   renderHeroes();
-  renderPlayerHeroes();
+
+  if (typeof renderPlayerHeroes === "function") {
+    renderPlayerHeroes();
+  }
+
+  if (typeof renderRally === "function") {
+    renderRally();
+  }
 }
 
 function renderHeroes() {

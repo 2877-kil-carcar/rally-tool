@@ -19,15 +19,36 @@ function addPlayer(name) {
   });
 
   save("players", players);
+
   renderPlayers();
-  renderPlayerHeroes();
+
+  if (typeof renderPlayerHeroes === "function") {
+    renderPlayerHeroes();
+  }
+
+  if (typeof renderRally === "function") {
+    renderRally();
+  }
 }
 
 function deletePlayer(index) {
+  const playerName = players[index].name;
+
   players.splice(index, 1);
   save("players", players);
+
+  rallies = rallies.filter(r => r.rally !== playerName);
+  save("rallies", rallies);
+
   renderPlayers();
-  renderPlayerHeroes();
+
+  if (typeof renderPlayerHeroes === "function") {
+    renderPlayerHeroes();
+  }
+
+  if (typeof renderRally === "function") {
+    renderRally();
+  }
 }
 
 function renderPlayers() {

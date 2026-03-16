@@ -34,7 +34,7 @@ function renderHeroCheckbox() {
   if (!playerSelect || !heroList) return;
 
   const player = players.find(p => p.name === playerSelect.value);
-  const ownedHeroes = player ? player.heroes : [];
+  const ownedHeroes = player ? (player.heroes || []) : [];
 
   let html = "";
 
@@ -65,6 +65,10 @@ function savePlayerHeroes() {
   player.heroes = checked;
   save("players", players);
   alert("保存しました");
+
+  if (typeof renderRally === "function") {
+    renderRally();
+  }
 }
 
 renderPlayerHeroes();
