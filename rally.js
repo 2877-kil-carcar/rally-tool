@@ -3,15 +3,24 @@ let rallies = load("rallies")
 function addRally(){
 
 let leader=document.getElementById("rallyLeader").value.trim()
-let rate=document.getElementById("rallyRate").value.trim()
+let r1 = Number(document.getElementById("rate1").value)
+let r2 = Number(document.getElementById("rate2").value)
+let r3 = Number(document.getElementById("rate3").value)
 
-if(!leader){
-alert("集結主を選択してください")
+if(isNaN(r1) || isNaN(r2) || isNaN(r3)){
+alert("割合を入力してください")
 return
 }
 
-if(!/^\d{3}$/.test(rate)){
-alert("割合は3桁で入力してください (例:630)")
+if(r1 + r2 + r3 !== 100){
+alert("割合の合計は100にしてください")
+return
+}
+
+let rate = `${r1}.${r2}.${r3}`
+
+if(!leader){
+alert("集結主を選択してください")
 return
 }
 
@@ -146,7 +155,11 @@ html+=`<option value="${p.name}">${p.name}</option>`
 html+=`</select>
 
 割合
-<input id="rallyRate" maxlength="3" placeholder="630">
+<input id="rate1" type="number" min="0" max="999" placeholder="45">
+.
+<input id="rate2" type="number" min="0" max="999" placeholder="5">
+.
+<input id="rate3" type="number" min="0" max="999" placeholder="50">
 
 </div>`
 
