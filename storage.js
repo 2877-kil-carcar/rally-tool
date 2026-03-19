@@ -26,11 +26,10 @@ window.initStorage = async function () {
   } else {
     cache = snap.data() || {}
 
-    // ★ここ追加（保険）
-    cache.players = cache.players || []
-    cache.rallies = cache.rallies || []
-    cache.alliances = cache.alliances || []
-    cache.heroMaster = cache.heroMaster || []
+    cache.players = Array.isArray(cache.players) ? cache.players : []
+    cache.rallies = Array.isArray(cache.rallies) ? cache.rallies : []
+    cache.alliances = Array.isArray(cache.alliances) ? cache.alliances : []
+    cache.heroMaster = Array.isArray(cache.heroMaster) ? cache.heroMaster : []
   }
 
   // リアルタイム同期
@@ -40,11 +39,10 @@ window.initStorage = async function () {
 
     cache = docSnap.data() || {}
 
-    // ★ここも同じ保険（重要）
-    cache.players = cache.players || []
-    cache.rallies = cache.rallies || []
-    cache.alliances = cache.alliances || []
-    cache.heroMaster = cache.heroMaster || []
+    cache.players = Array.isArray(cache.players) ? cache.players : []
+    cache.rallies = Array.isArray(cache.rallies) ? cache.rallies : []
+    cache.alliances = Array.isArray(cache.alliances) ? cache.alliances : []
+    cache.heroMaster = Array.isArray(cache.heroMaster) ? cache.heroMaster : []
 
     // 再描画
     if (typeof renderHeroes === "function") renderHeroes()
