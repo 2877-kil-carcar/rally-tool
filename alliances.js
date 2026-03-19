@@ -1,80 +1,91 @@
-let alliances=load("alliances")
+async function addAlliance(name){
 
-function addAlliance(name){
+  const allianceName = (name || "").trim()
 
-let n=(name||"").trim()
+  if(!allianceName){
+    alert("同盟名を入力してください")
+    return
+  }
 
-if(!n){
-alert("同盟名を入力してください")
-return
+  const alliances = getState("alliances")
+
+  if(alliances.some(a=>a.name === allianceName)){
+    alert("登録済み")
+    return
+  }
+
+  await window.db.collection("alliances").add({
+    name: allianceName,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
 }
 
-if(alliances.includes(n)){
-alert("登録済み")
-return
-}
+async function deleteAlliance(id){
 
-alliances.push(n)
+  const alliances = getState("alliances")
+  const players = getState("players")
 
-save("alliances",alliances)
+  const target = alliances.find(a=>a.id === id)
+  if(!target) return
 
-renderAlliances()
+  if(!confirm(`同盟「${target.name}」を削除しますか？`)){
+    return
+  }
 
-renderPlayers()
+  const batch = window.db.batch()
 
-}
+  batch.delete(window.db.collection("alliances").doc(id))
 
-function deleteAlliance(i){
+  players.forEach(player=>{
+    if(player.alliance === target.name){
+      batch.update(
+        window.db.collection("players").doc(player.id),
+        {
+          alliance: ""
+        }
+      )
+    }
+  })
 
-let name=alliances[i]
-
-alliances.splice(i,1)
-
-players.forEach(p=>{
-if(p.alliance===name){
-p.alliance=""
-}
-})
-
-save("players",players)
-save("alliances",alliances)
-
-renderAlliances()
-renderPlayers()
-
+  await batch.commit()
 }
 
 function renderAlliances(){
 
-let html=`
-<h2>同盟登録</h2>
+  const alliances = getState("alliances")
 
-<input id="allianceName" placeholder="同盟名">
+  let html = `
+  <h2>同盟登録</h2>
 
-<button onclick="addAlliance(document.getElementById('allianceName').value)">追加</button>
+  <input id="allianceName" placeholder="同盟名">
 
-<table>
-<tr>
-<th>同盟</th>
-<th></th>
-</tr>
-`
+  <button onclick="addAlliance(document.getElementById('allianceName').value)">追加</button>
 
-alliances.forEach((a,i)=>{
+  <table>
+  <tr>
+  <th>同盟</th>
+  <th></th>
+  </tr>
+  `
 
-html+=`
-<tr>
-<td>${a}</td>
-<td><button onclick="deleteAlliance(${i})">削除</button></td>
-</tr>
-`
+  alliances.forEach(a=>{
+    html += `
+    <tr>
+    <td>${escapeHtml(a.name)}</td>
+    <td><button onclick="deleteAlliance('${a.id}')">削除</button></td>
+    </tr>
+    `
+  })
 
-})
+  html += `</table>`
 
-html+=`</table>`
-
-document.getElementById("alliances").innerHTML=html
-
+  document.getElementById("alliances").innerHTML = html
+  afterRender()
 }
 
+subscribe("alliances", renderAlliances)
 renderAlliances()
+
+window.addAlliance = addAlliance
+window.deleteAlliance = deleteAlliance
+window.renderAlliances = renderAlliances

@@ -52,6 +52,35 @@ z-index:9999;
 <div id="resultTable"></div>
 </div>
 
+<script>
+function showTab(tabId){
+
+  document.querySelectorAll(".tab").forEach(el=>{
+    el.style.display = "none"
+  })
+
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.classList.remove("active")
+  })
+
+  const activeTab = document.getElementById(tabId)
+  if(activeTab){
+    activeTab.style.display = "block"
+  }
+
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    const onclickText = btn.getAttribute("onclick") || ""
+    if(onclickText.includes(`'${tabId}'`)){
+      btn.classList.add("active")
+    }
+  })
+}
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
 <script src="storage.js"></script>
 <script src="auth.js"></script>
 <script src="heroes.js"></script>
@@ -62,16 +91,6 @@ z-index:9999;
 <script src="assign.js"></script>
 
 <script>
-showTab("heroes")
-</script>
-
-<!-- Firebase -->
-<script type="module" src="players.js">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-/* ★ 自分のプロジェクトに置き換え */
 const firebaseConfig = {
   apiKey: "AIzaSyDs-jLrDT8s_lymDkDU2VGET0RKeuVvulc",
   authDomain: "rally-app-d8610.firebaseapp.com",
@@ -79,30 +98,124 @@ const firebaseConfig = {
   storageBucket: "rally-app-d8610.firebasestorage.app",
   messagingSenderId: "439294990582",
   appId: "1:439294990582:web:63c2f273b9f4d5e56af4d7"
-};
+}
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+firebase.initializeApp(firebaseConfig)
 
-/* グローバル公開（既存コードから使う） */
-window._db = db;
-window._auth = auth;
-window._fs = { doc, getDoc, setDoc, updateDoc, onSnapshot };
+window.db = firebase.firestore()
+window.auth = firebase.auth()
 
-/* 匿名ログイン */
-signInAnonymously(auth);
+window.firestoreUnsubscribers = []
 
-/* ログイン後に初期化 */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
-  console.log("UID:", user.uid);
+function clearFirestoreListeners(){
+  window.firestoreUnsubscribers.forEach(fn=>{
+    try{
+      fn()
+    }
+    catch(e){
+      console.error(e)
+    }
+  })
 
-  // storage初期化
-  if (window.initStorage) {
-    await window.initStorage();
-  }
-});
+  window.firestoreUnsubscribers = []
+}
+
+function startRealtimeSync(){
+
+  clearFirestoreListeners()
+
+  window.firestoreUnsubscribers.push(
+    window.db.collection("heroes").onSnapshot(snapshot=>{
+      const list = []
+      snapshot.forEach(doc=>{
+        const data = doc.data() || {}
+        list.push({
+          id: doc.id,
+          name: data.name || ""
+        })
+      })
+
+      list.sort((a,b)=>a.name.localeCompare(b.name))
+      setState("heroes", list)
+    }, err=>console.error("heroes sync error", err))
+  )
+
+  window.firestoreUnsubscribers.push(
+    window.db.collection("alliances").onSnapshot(snapshot=>{
+      const list = []
+      snapshot.forEach(doc=>{
+        const data = doc.data() || {}
+        list.push({
+          id: doc.id,
+          name: data.name || ""
+        })
+      })
+
+      list.sort((a,b)=>a.name.localeCompare(b.name))
+      setState("alliances", list)
+    }, err=>console.error("alliances sync error", err))
+  )
+
+  window.firestoreUnsubscribers.push(
+    window.db.collection("players").onSnapshot(snapshot=>{
+      const list = []
+      snapshot.forEach(doc=>{
+        const data = doc.data() || {}
+        list.push({
+          id: doc.id,
+          name: data.name || "",
+          alliance: data.alliance || "",
+          heroes: Array.isArray(data.heroes) ? data.heroes : [],
+          active: data.active !== false
+        })
+      })
+
+      list.sort((a,b)=>{
+        const aa = a.alliance || ""
+        const bb = b.alliance || ""
+        const c = aa.localeCompare(bb)
+        if(c !== 0) return c
+        return a.name.localeCompare(b.name)
+      })
+
+      setState("players", list)
+    }, err=>console.error("players sync error", err))
+  )
+
+  window.firestoreUnsubscribers.push(
+    window.db.collection("rallies").onSnapshot(snapshot=>{
+      const list = []
+      snapshot.forEach(doc=>{
+        const data = doc.data() || {}
+        list.push({
+          id: doc.id,
+          leaderId: data.leaderId || "",
+          rate: data.rate || "",
+          heroes: Array.isArray(data.heroes) ? data.heroes : [],
+          active: data.active !== false
+        })
+      })
+
+      list.sort((a,b)=>a.leaderId.localeCompare(b.leaderId))
+      setState("rallies", list)
+    }, err=>console.error("rallies sync error", err))
+  )
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+
+  showTab("heroes")
+
+  firebase.auth().signInAnonymously()
+  .then(()=>{
+    console.log("Firebase接続OK")
+    startRealtimeSync()
+  })
+  .catch(e=>{
+    console.error("Firebaseエラー", e)
+    alert("Firebase接続に失敗しました")
+  })
+})
 </script>
 
 </body>

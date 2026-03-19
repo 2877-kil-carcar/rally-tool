@@ -1,240 +1,264 @@
-let rallies = load("rallies")
-
 function heroOptions(){
 
-let html=`<option value="">なし</option>`
+  const heroMaster = getState("heroes")
 
-heroMaster.forEach(h=>{
-html+=`<option value="${h}">${h}</option>`
-})
+  let html = `<option value="">なし</option>`
 
-return html
+  heroMaster.forEach(h=>{
+    html += `<option value="${escapeHtml(h.name)}">${escapeHtml(h.name)}</option>`
+  })
 
+  return html
 }
 
-function addRally(){
+async function addRally(){
 
-let leader=document.getElementById("rallyLeader").value
+  const rallies = getState("rallies")
+  const players = getState("players")
 
-let r1=Number(rate1.value)
-let r2=Number(rate2.value)
-let r3=Number(rate3.value)
+  const leaderId = document.getElementById("rallyLeader").value
 
-if(r1+r2+r3!==100){
-alert("割合合計は100にしてください")
-return
+  const r1 = Number(document.getElementById("rate1").value || 0)
+  const r2 = Number(document.getElementById("rate2").value || 0)
+  const r3 = Number(document.getElementById("rate3").value || 0)
+
+  if(!leaderId){
+    alert("集結主を選択してください")
+    return
+  }
+
+  if(rallies.some(r=>r.leaderId === leaderId)){
+    alert("同じ集結主は登録できません")
+    return
+  }
+
+  if(r1 + r2 + r3 !== 100){
+    alert("割合合計は100にしてください")
+    return
+  }
+
+  const rate = `${r1}.${r2}.${r3}`
+
+  const heroes = []
+  const heroNames = new Set()
+
+  function getHero(heroId, needId){
+
+    const hero = document.getElementById(heroId).value
+    const needRaw = document.getElementById(needId).value
+
+    if(!hero){
+      return
+    }
+
+    const need = Number(needRaw)
+
+    if(!Number.isInteger(need) || need < 1 || need > 4){
+      throw new Error("人数は1～4で入力してください")
+    }
+
+    if(heroNames.has(hero)){
+      throw new Error("同じ英雄は同一集結に重複登録できません")
+    }
+
+    heroNames.add(hero)
+    heroes.push({ hero: hero, need: need })
+  }
+
+  try{
+    getHero("hero1","need1")
+    getHero("hero2","need2")
+    getHero("hero3","need3")
+    getHero("hero4","need4")
+  }
+  catch(e){
+    alert(e.message)
+    return
+  }
+
+  if(heroes.length === 0){
+    alert("英雄を1つ以上登録してください")
+    return
+  }
+
+  const leader = players.find(p=>p.id === leaderId)
+  if(!leader){
+    alert("集結主が見つかりません")
+    return
+  }
+
+  await window.db.collection("rallies").add({
+    leaderId: leaderId,
+    rate: rate,
+    heroes: heroes,
+    active: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
 }
 
-let rate=`${r1}.${r2}.${r3}`
+async function toggleRally(id, current){
 
-let heroes=[]
-
-function getHero(h,n){
-
-let hero=document.getElementById(h).value
-let need=Number(document.getElementById(n).value)
-
-if(!hero) return
-
-heroes.push({hero:hero,need:need})
-
+  await window.db.collection("rallies").doc(id).update({
+    active: !current
+  })
 }
 
-getHero("hero1","need1")
-getHero("hero2","need2")
-getHero("hero3","need3")
-getHero("hero4","need4")
+async function deleteRally(id){
 
-rallies.push({
-rally:leader,
-rate:rate,
-heroes:heroes,
-active:true
-})
+  if(!confirm("削除しますか？")) return
 
-save("rallies",rallies)
-
-renderRally()
-
-}
-
-function toggleRally(i){
-
-rallies[i].active=!rallies[i].active
-
-save("rallies",rallies)
-
-renderRally()
-
+  await window.db.collection("rallies").doc(id).delete()
 }
 
 function renderRally(){
-  let players = window.players || []
 
-  if(!Array.isArray(players)) return
+  const players = getState("players")
+  const rallies = getState("rallies")
 
-let html=`
-<h2>集結設定</h2>
+  let html = `
+  <h2>集結設定</h2>
 
-集結主
-<select id="rallyLeader">
-`
+  集結主
+  <select id="rallyLeader">
+  `
 
-// プレイヤーソート
-let sortedPlayers = players.slice().sort((a,b)=>{
+  const sortedPlayers = players.slice().sort((a,b)=>{
 
-let aAlliance=a.alliance||""
-let bAlliance=b.alliance||""
+    let aAlliance = a.alliance || ""
+    let bAlliance = b.alliance || ""
 
-let c=aAlliance.localeCompare(bAlliance)
-if(c!==0) return c
+    let c = aAlliance.localeCompare(bAlliance)
+    if(c !== 0) return c
 
-return a.name.localeCompare(b.name)
+    return a.name.localeCompare(b.name)
+  })
 
-})
+  const playerGroups = {}
 
-// 同盟グループ
-let playerGroups={}
+  sortedPlayers.forEach(p=>{
+    const key = p.alliance || "未所属"
+    if(!playerGroups[key]) playerGroups[key] = []
+    playerGroups[key].push(p)
+  })
 
-sortedPlayers.forEach(p=>{
+  Object.keys(playerGroups).forEach(alliance=>{
 
-let key=p.alliance||"未所属"
+    html += `<optgroup label="${escapeHtml(alliance)}">`
 
-if(!playerGroups[key]) playerGroups[key]=[]
+    playerGroups[alliance].forEach(p=>{
+      html += `<option value="${p.id}">${escapeHtml(p.name)}</option>`
+    })
 
-playerGroups[key].push(p)
+    html += `</optgroup>`
+  })
 
-})
+  html += `
+  </select>
 
-// プルダウン生成
-Object.keys(playerGroups).forEach(alliance=>{
+  割合
+  <input id="rate1" class="rate-input" type="number" min="0" max="100">
+  .
+  <input id="rate2" class="rate-input" type="number" min="0" max="100">
+  .
+  <input id="rate3" class="rate-input" type="number" min="0" max="100">
+  `
 
-html+=`<optgroup label="${alliance}">`
+  html += `
+  <div class="rally-row">
+  英雄 <select id="hero1">${heroOptions()}</select>
+  人数 <input id="need1" type="number" min="1" max="4">
+  </div>
 
-playerGroups[alliance].forEach(p=>{
-html+=`<option>${p.name}</option>`
-})
+  <div class="rally-row">
+  英雄 <select id="hero2">${heroOptions()}</select>
+  人数 <input id="need2" type="number" min="1" max="4">
+  </div>
 
-html+=`</optgroup>`
+  <div class="rally-row">
+  英雄 <select id="hero3">${heroOptions()}</select>
+  人数 <input id="need3" type="number" min="1" max="4">
+  </div>
 
-})
+  <div class="rally-row">
+  英雄 <select id="hero4">${heroOptions()}</select>
+  人数 <input id="need4" type="number" min="1" max="4">
+  </div>
 
-html+=`
-</select>
+  <button onclick="addRally()">追加</button>
+  `
 
-割合
-<input id="rate1" class="rate-input">
-.
-<input id="rate2" class="rate-input">
-.
-<input id="rate3" class="rate-input">
-`
+  const rallyGroups = {}
 
-html+=`
-<div class="rally-row">
-英雄 <select id="hero1">${heroOptions()}</select>
-人数 <input id="need1" type="number" min="1" max="4">
-</div>
+  rallies.forEach(r=>{
 
-<div class="rally-row">
-英雄 <select id="hero2">${heroOptions()}</select>
-人数 <input id="need2" type="number">
-</div>
+    const player = players.find(p=>p.id === r.leaderId)
+    const alliance = player && player.alliance ? player.alliance : "未所属"
 
-<div class="rally-row">
-英雄 <select id="hero3">${heroOptions()}</select>
-人数 <input id="need3" type="number">
-</div>
+    if(!rallyGroups[alliance]) rallyGroups[alliance] = []
 
-<div class="rally-row">
-英雄 <select id="hero4">${heroOptions()}</select>
-人数 <input id="need4" type="number">
-</div>
+    rallyGroups[alliance].push({
+      ...r,
+      leaderName: player ? player.name : "不明"
+    })
+  })
 
-<button onclick="addRally()">追加</button>
-`
+  Object.keys(rallyGroups).sort((a,b)=>a.localeCompare(b)).forEach(alliance=>{
 
-// rallyを同盟グループ化
-let rallyGroups={}
+    html += `<h3>${escapeHtml(alliance)}</h3>`
 
-rallies.forEach(r=>{
+    html += `
+    <table>
+    <tr>
+    <th>集結主</th>
+    <th>参加</th>
+    <th>割合</th>
+    <th>英雄</th>
+    <th>人数</th>
+    <th></th>
+    </tr>
+    `
 
-let player=players.find(p=>p.name===r.rally)
+    rallyGroups[alliance]
+      .sort((a,b)=>a.leaderName.localeCompare(b.leaderName))
+      .forEach(r=>{
 
-let alliance=player?player.alliance:"未所属"
+        const heroes = Array.isArray(r.heroes) ? r.heroes : []
 
-if(!rallyGroups[alliance]) rallyGroups[alliance]=[]
+        heroes.forEach((h,index)=>{
 
-rallyGroups[alliance].push(r)
+          html += `
+          <tr>
+          <td>${index === 0 ? escapeHtml(r.leaderName) : ""}</td>
 
-})
+          <td>
+          ${index === 0 ? `<label class="switch">
+          <input type="checkbox" ${r.active ? "checked" : ""} onchange="toggleRally('${r.id}', ${r.active})">
+          <span class="slider"></span>
+          </label>` : ""}
+          </td>
 
-// 表示
-Object.keys(rallyGroups).forEach(alliance=>{
+          <td>${index === 0 ? escapeHtml(r.rate) : ""}</td>
+          <td>${escapeHtml(h.hero)}</td>
+          <td>${escapeHtml(h.need)}</td>
+          <td>${index === 0 ? `<button onclick="deleteRally('${r.id}')">削除</button>` : ""}</td>
+          </tr>
+          `
+        })
+      })
 
-html+=`<h3>${alliance}</h3>`
+    html += `</table>`
+  })
 
-html+=`
-<table>
-<tr>
-<th>集結主</th>
-<th>参加</th>
-<th>割合</th>
-<th>英雄</th>
-<th>人数</th>
-<th></th>
-</tr>
-`
-
-rallyGroups[alliance].forEach((r,i)=>{
-
-r.heroes.forEach((h,index)=>{
-
-html+=`
-<tr>
-
-<td>${index===0?r.rally:""}</td>
-
-<td>
-${index===0?`<label class="switch">
-<input type="checkbox" ${r.active?"checked":""} onchange="toggleRally(${i})">
-<span class="slider"></span>
-</label>`:""}
-</td>
-
-<td>${index===0?r.rate:""}</td>
-
-<td>${h.hero}</td>
-<td>${h.need}</td>
-<td>
-${index===0?`<button onclick="deleteRally(${i})">削除</button>`:""}
-</td>
-
-</tr>
-`
-
-})
-
-})
-
-html+=`</table>`
-
-})
-
-document.getElementById("rally").innerHTML=html
-
+  document.getElementById("rally").innerHTML = html
+  afterRender()
 }
 
-function deleteRally(i){
-
-if(!confirm("削除しますか？")) return
-
-rallies.splice(i,1)
-
-save("rallies",rallies)
-
+subscribe("players", renderRally)
+subscribe("heroes", renderRally)
+subscribe("rallies", renderRally)
 renderRally()
 
-}
-
-renderRally()
+window.addRally = addRally
+window.toggleRally = toggleRally
+window.deleteRally = deleteRally
+window.renderRally = renderRally

@@ -1,77 +1,108 @@
+window.playerHeroesSelectedPlayerId = ""
+
 function renderPlayerHeroes(){
-    
-  let players = window.players || []
 
-  if(!Array.isArray(players)) return
+  const players = getState("players")
+  const heroes = getState("heroes")
+  const container = document.getElementById("playerHeroes")
 
-const container=document.getElementById("playerHeroes")
+  if(players.length === 0){
+    container.innerHTML = "<h2>所持英雄登録</h2><p>先にプレイヤー登録</p>"
+    afterRender()
+    return
+  }
 
-if(players.length===0){
-container.innerHTML="<h2>所持英雄登録</h2><p>先にプレイヤー登録</p>"
-return
+  if(!window.playerHeroesSelectedPlayerId || !players.some(p=>p.id === window.playerHeroesSelectedPlayerId)){
+    window.playerHeroesSelectedPlayerId = players[0].id
+  }
+
+  let html = `
+  <h2>所持英雄登録</h2>
+
+  <select id="playerSelect" onchange="changePlayerHeroTarget(this.value)">
+  `
+
+  players.forEach(p=>{
+    html += `<option value="${p.id}" ${p.id === window.playerHeroesSelectedPlayerId ? "selected" : ""}>${escapeHtml(p.name)}</option>`
+  })
+
+  html += `
+  </select>
+
+  <div id="heroList"></div>
+
+  <button onclick="savePlayerHeroes()">保存</button>
+  `
+
+  container.innerHTML = html
+
+  renderHeroCheckbox()
+  afterRender()
 }
 
-let html=`
-<h2>所持英雄登録</h2>
-
-<select id="playerSelect" onchange="renderHeroCheckbox()">
-`
-
-players.forEach(p=>{
-html+=`<option value="${p.name}">${p.name}</option>`
-})
-
-html+=`
-</select>
-
-<div id="heroList"></div>
-
-<button onclick="savePlayerHeroes()">保存</button>
-`
-
-container.innerHTML=html
-
-renderHeroCheckbox()
-
+function changePlayerHeroTarget(playerId){
+  window.playerHeroesSelectedPlayerId = playerId
+  renderHeroCheckbox()
 }
 
 function renderHeroCheckbox(){
 
-let player=players.find(p=>p.name===playerSelect.value)
+  const players = getState("players")
+  const heroMaster = getState("heroes")
 
-let owned=player?player.heroes:[]
+  const player = players.find(p=>p.id === window.playerHeroesSelectedPlayerId)
 
-let html=""
+  if(!player){
+    heroList.innerHTML = ""
+    return
+  }
 
-heroMaster.forEach(h=>{
+  const owned = Array.isArray(player.heroes) ? player.heroes : []
 
-let checked=owned.includes(h)?"checked":""
+  let html = ""
 
-html+=`
-<label>
-<input type="checkbox" value="${h}" ${checked}>
-${h}
-</label><br>
-`
+  heroMaster.forEach(h=>{
+    let checked = owned.includes(h.name) ? "checked" : ""
 
-})
+    html += `
+    <label>
+    <input type="checkbox" value="${escapeHtml(h.name)}" ${checked}>
+    ${escapeHtml(h.name)}
+    </label><br>
+    `
+  })
 
-heroList.innerHTML=html
+  if(heroMaster.length === 0){
+    html = "<p>先に英雄登録</p>"
+  }
 
+  heroList.innerHTML = html
 }
 
-function savePlayerHeroes(){
+async function savePlayerHeroes(){
 
-let checked=[...heroList.querySelectorAll("input:checked")].map(x=>x.value)
+  const players = getState("players")
+  const player = players.find(p=>p.id === window.playerHeroesSelectedPlayerId)
 
-let player=players.find(p=>p.name===playerSelect.value)
+  if(!player){
+    alert("プレイヤーが見つかりません")
+    return
+  }
 
-player.heroes=checked
+  const checked = [...heroList.querySelectorAll("input:checked")].map(x=>x.value)
 
-save("players",players)
+  await window.db.collection("players").doc(player.id).update({
+    heroes: checked
+  })
 
-alert("保存しました")
-
+  alert("保存しました")
 }
 
+subscribe("players", renderPlayerHeroes)
+subscribe("heroes", renderPlayerHeroes)
 renderPlayerHeroes()
+
+window.renderPlayerHeroes = renderPlayerHeroes
+window.renderHeroCheckbox = renderHeroCheckbox
+window.savePlayerHeroes = savePlayerHeroes
+window.changePlayerHeroTarget = changePlayerHeroTarget

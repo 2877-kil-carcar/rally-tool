@@ -1,69 +1,19 @@
-import { db } from "./firebase.js"
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
-
-let players = []
-let alliances = []
-
-// ----------------------
-// 初期ロード
-// ----------------------
-export async function initPlayers() {
-
-  // --- 同盟取得 ---
-  const appDoc = await getDoc(doc(db, "app", "config"))
-
-  if (appDoc.exists()) {
-    const data = appDoc.data()
-    alliances = Array.isArray(data.alliances) ? data.alliances : []
-  } else {
-    alliances = []
-  }
-
-  // --- プレイヤー取得 ---
-  const snapshot = await getDocs(collection(db, "players"))
-
-  players = []
-  snapshot.forEach(d => {
-    players.push({
-      id: d.id,
-      ...d.data()
-    })
-  })
-
-  renderPlayers()
-  window.players = players
-  window.alliances = alliances
-
-  if(window.renderPlayerHeroes) window.renderPlayerHeroes()
-  if(window.renderRally) window.renderRally()
-}
-
-// ----------------------
-// 同盟プルダウン
-// ----------------------
 function allianceOptions(){
+
+  const alliances = getState("alliances")
 
   let html = `<option value="">なし</option>`
 
   alliances.forEach(a=>{
-    html += `<option value="${a}">${a}</option>`
+    html += `<option value="${escapeHtml(a.name)}">${escapeHtml(a.name)}</option>`
   })
 
   return html
 }
 
-// ----------------------
-// 追加
-// ----------------------
 async function addPlayer(){
+
+  const players = getState("players")
 
   let name = document.getElementById("playerName").value.trim()
   let alliance = document.getElementById("playerAlliance").value
@@ -73,49 +23,57 @@ async function addPlayer(){
     return
   }
 
-  if(players.some(p=>p.name===name)){
+  if(players.some(p=>p.name === name)){
     alert("登録済み")
     return
   }
 
-  await addDoc(collection(db,"players"),{
-    name:name,
-    alliance:alliance,
-    heroes:[],
-    active:true
+  await window.db.collection("players").add({
+    name: name,
+    alliance: alliance,
+    heroes: [],
+    active: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   })
-
-  await initPlayers()
 }
 
-// ----------------------
-// ON/OFF切替
-// ----------------------
 async function togglePlayer(id, current){
 
-  await updateDoc(doc(db,"players",id),{
+  await window.db.collection("players").doc(id).update({
     active: !current
   })
-
-  await initPlayers()
 }
 
-// ----------------------
-// 削除
-// ----------------------
 async function deletePlayer(id){
 
-  await deleteDoc(doc(db,"players",id))
+  const players = getState("players")
+  const rallies = getState("rallies")
 
-  await initPlayers()
+  const target = players.find(p=>p.id === id)
+  if(!target) return
+
+  if(!confirm(`プレイヤー「${target.name}」を削除しますか？`)){
+    return
+  }
+
+  const batch = window.db.batch()
+
+  batch.delete(window.db.collection("players").doc(id))
+
+  rallies.forEach(r=>{
+    if(r.leaderId === id){
+      batch.delete(window.db.collection("rallies").doc(r.id))
+    }
+  })
+
+  await batch.commit()
 }
 
-// ----------------------
-// 描画
-// ----------------------
 function renderPlayers(){
 
-  let html=`
+  const players = getState("players")
+
+  let html = `
   <h2>プレイヤー登録</h2>
 
   <input id="playerName" placeholder="プレイヤー名">
@@ -127,32 +85,30 @@ function renderPlayers(){
   <button onclick="addPlayer()">追加</button>
   `
 
-  // ソート（同盟→名前）
-  let sorted = players.slice().sort((a,b)=>{
+  const sorted = players.slice().sort((a,b)=>{
 
-    let aAlliance=a.alliance||""
-    let bAlliance=b.alliance||""
+    let aAlliance = a.alliance || ""
+    let bAlliance = b.alliance || ""
 
-    let c=aAlliance.localeCompare(bAlliance)
-    if(c!==0) return c
+    let c = aAlliance.localeCompare(bAlliance)
+    if(c !== 0) return c
 
     return a.name.localeCompare(b.name)
   })
 
-  // グループ化
-  let groups={}
+  const groups = {}
 
   sorted.forEach(p=>{
-    let key=p.alliance||"未所属"
-    if(!groups[key]) groups[key]=[]
+    const key = p.alliance || "未所属"
+    if(!groups[key]) groups[key] = []
     groups[key].push(p)
   })
 
   Object.keys(groups).forEach(alliance=>{
 
-    html+=`<h3>${alliance}</h3>`
+    html += `<h3>${escapeHtml(alliance)}</h3>`
 
-    html+=`
+    html += `
     <table>
     <tr>
     <th>プレイヤー</th>
@@ -162,46 +118,36 @@ function renderPlayers(){
     `
 
     groups[alliance].forEach(p=>{
-
-      html+=`
+      html += `
       <tr>
-
-      <td>${p.name}</td>
-
+      <td>${escapeHtml(p.name)}</td>
       <td>
       <label class="switch">
       <input type="checkbox"
-        ${p.active!==false?"checked":""}
-        onchange="togglePlayer('${p.id}', ${p.active!==false})">
+        ${p.active !== false ? "checked" : ""}
+        onchange="togglePlayer('${p.id}', ${p.active !== false})">
       <span class="slider"></span>
       </label>
       </td>
-
       <td>
       <button onclick="deletePlayer('${p.id}')">削除</button>
       </td>
-
       </tr>
       `
     })
 
-    html+=`</table>`
+    html += `</table>`
   })
 
-  document.getElementById("players").innerHTML=html
+  document.getElementById("players").innerHTML = html
+  afterRender()
 }
 
-// ----------------------
-// グローバル公開（重要）
-// ----------------------
+subscribe("players", renderPlayers)
+subscribe("alliances", renderPlayers)
+renderPlayers()
+
 window.addPlayer = addPlayer
 window.togglePlayer = togglePlayer
 window.deletePlayer = deletePlayer
-
-// ----------------------
-// 起動
-// ----------------------
-initPlayers()
-
-window.players = players
-window.alliances = alliances
+window.renderPlayers = renderPlayers

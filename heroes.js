@@ -1,68 +1,105 @@
-let heroMaster=load("heroMaster")
+async function addHero(name){
 
-function addHero(name){
+  const hero = (name || "").trim()
 
-let hero=(name||"").trim()
+  if(!hero){
+    alert("英雄名を入力してください")
+    return
+  }
 
-if(!hero){
-alert("英雄名を入力してください")
-return
+  const heroes = getState("heroes")
+
+  if(heroes.some(h=>h.name === hero)){
+    alert("登録済みです")
+    return
+  }
+
+  await window.db.collection("heroes").add({
+    name: hero,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
 }
 
-if(heroMaster.includes(hero)){
-alert("登録済みです")
-return
-}
+async function deleteHero(id){
 
-heroMaster.push(hero)
+  const heroes = getState("heroes")
+  const players = getState("players")
+  const rallies = getState("rallies")
 
-save("heroMaster",heroMaster)
+  const target = heroes.find(h=>h.id === id)
+  if(!target) return
 
-renderHeroes()
+  if(!confirm(`英雄「${target.name}」を削除しますか？`)){
+    return
+  }
 
-}
+  const batch = window.db.batch()
 
-function deleteHero(i){
+  batch.delete(window.db.collection("heroes").doc(id))
 
-heroMaster.splice(i,1)
+  players.forEach(player=>{
+    if(Array.isArray(player.heroes) && player.heroes.includes(target.name)){
+      batch.update(
+        window.db.collection("players").doc(player.id),
+        {
+          heroes: player.heroes.filter(x=>x !== target.name)
+        }
+      )
+    }
+  })
 
-save("heroMaster",heroMaster)
+  rallies.forEach(rally=>{
+    const nextHeroes = (Array.isArray(rally.heroes) ? rally.heroes : []).filter(x=>x.hero !== target.name)
 
-renderHeroes()
+    if(nextHeroes.length !== rally.heroes.length){
+      batch.update(
+        window.db.collection("rallies").doc(rally.id),
+        {
+          heroes: nextHeroes
+        }
+      )
+    }
+  })
 
+  await batch.commit()
 }
 
 function renderHeroes(){
 
-let html=`
-<h2>英雄登録</h2>
+  const heroMaster = getState("heroes")
 
-<input id="heroName" placeholder="英雄名">
+  let html = `
+  <h2>英雄登録</h2>
 
-<button onclick="addHero(document.getElementById('heroName').value)">追加</button>
+  <input id="heroName" placeholder="英雄名">
 
-<table>
-<tr>
-<th>英雄</th>
-<th></th>
-</tr>
-`
+  <button onclick="addHero(document.getElementById('heroName').value)">追加</button>
 
-heroMaster.forEach((h,i)=>{
+  <table>
+  <tr>
+  <th>英雄</th>
+  <th></th>
+  </tr>
+  `
 
-html+=`
-<tr>
-<td>${h}</td>
-<td><button onclick="deleteHero(${i})">削除</button></td>
-</tr>
-`
+  heroMaster.forEach(h=>{
+    html += `
+    <tr>
+    <td>${escapeHtml(h.name)}</td>
+    <td><button onclick="deleteHero('${h.id}')">削除</button></td>
+    </tr>
+    `
+  })
 
-})
+  html += `</table>`
 
-html+=`</table>`
-
-document.getElementById("heroes").innerHTML=html
-
+  document.getElementById("heroes").innerHTML = html
+  afterRender()
 }
 
+subscribe("heroes", renderHeroes)
 renderHeroes()
+
+window.addHero = addHero
+window.deleteHero = deleteHero
+window.renderHeroes = renderHeroes

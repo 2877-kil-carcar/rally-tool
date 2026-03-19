@@ -1,161 +1,174 @@
+window.copyData = {}
+
 function shuffle(array){
 
-for(let i=array.length-1;i>0;i--){
+  for(let i = array.length - 1; i > 0; i--){
 
-const j=Math.floor(Math.random()*(i+1))
+    const j = Math.floor(Math.random() * (i + 1))
 
-const temp=array[i]
-array[i]=array[j]
-array[j]=temp
+    const temp = array[i]
+    array[i] = array[j]
+    array[j] = temp
+  }
 
-}
-
-return array
-
+  return array
 }
 
 function assign(){
 
-let used=new Set()
+  const players = getState("players")
+  const rallies = getState("rallies")
 
-let result=[]
+  const playerMap = {}
+  players.forEach(p=>{
+    playerMap[p.id] = p
+  })
 
-// 集結主一覧
-let leaders=new Set(
-rallies.filter(r=>r.active!==false).map(r=>r.rally)
-)
+  const activeRallies = rallies.filter(r=>{
+    if(r.active === false) return false
 
-// 集結主は最初から使用済み
-leaders.forEach(l=>used.add(l))
+    const leader = playerMap[r.leaderId]
+    if(!leader) return false
+    if(leader.active === false) return false
 
-rallies.filter(r=>r.active!==false).forEach(r=>{
+    return true
+  })
 
-// 集結主プレイヤー
-let leaderPlayer=players.find(p=>p.name===r.rally)
+  const usedPlayerIds = new Set()
+  const leaderIds = new Set(activeRallies.map(r=>r.leaderId))
+  const result = []
 
-let rallyAlliance=leaderPlayer?leaderPlayer.alliance:""
+  leaderIds.forEach(id=>usedPlayerIds.add(id))
 
-r.heroes.forEach(h=>{
+  activeRallies.forEach(r=>{
 
-let count=h.need
+    const leader = playerMap[r.leaderId]
+    if(!leader) return
 
-// 候補
-let candidates=players.filter(p=>
+    const rallyAlliance = leader.alliance || ""
 
-p.active!==false &&              // 参加ON
-p.name!==r.rally &&              // 自分の集結は乗らない
-!leaders.has(p.name) &&          // 他の集結主も乗らない
-!used.has(p.name) &&             // 他集結に乗らない
-p.heroes.includes(h.hero) &&     // 英雄所持
-p.alliance===rallyAlliance       // 同盟一致
-)
+    ;(Array.isArray(r.heroes) ? r.heroes : []).forEach(h=>{
 
-candidates=shuffle([...candidates])
+      let count = Number(h.need) || 0
 
-candidates.forEach(p=>{
+      let candidates = players.filter(p=>
 
-if(count<=0) return
+        p.active !== false &&
+        p.id !== r.leaderId &&
+        !leaderIds.has(p.id) &&
+        !usedPlayerIds.has(p.id) &&
+        Array.isArray(p.heroes) &&
+        p.heroes.includes(h.hero) &&
+        (p.alliance || "") === rallyAlliance
+      )
 
-result.push({
-rally:r.rally,
-hero:h.hero,
-player:p.name
-})
+      candidates = shuffle([...candidates])
 
-used.add(p.name)
+      candidates.forEach(p=>{
 
-count--
+        if(count <= 0) return
 
-})
+        result.push({
+          leaderId: r.leaderId,
+          leaderName: leader.name,
+          alliance: rallyAlliance || "未所属",
+          rate: r.rate || "",
+          hero: h.hero,
+          playerName: p.name
+        })
 
-while(count>0){
+        usedPlayerIds.add(p.id)
+        count--
+      })
 
-result.push({
-rally:r.rally,
-hero:h.hero,
-player:"不在"
-})
+      while(count > 0){
 
-count--
+        result.push({
+          leaderId: r.leaderId,
+          leaderName: leader.name,
+          alliance: rallyAlliance || "未所属",
+          rate: r.rate || "",
+          hero: h.hero,
+          playerName: "不在"
+        })
 
-}
+        count--
+      }
+    })
+  })
 
-})
-
-})
-
-renderResult(result)
-
+  renderResult(result)
 }
 
 function renderResult(data){
 
-let html=`<h2>振り分け結果</h2>`
+  let html = `<h2>振り分け結果</h2>`
 
-let groups={}
+  const groups = {}
 
-data.forEach(r=>{
-if(!groups[r.rally]) groups[r.rally]=[]
-groups[r.rally].push(r)
-})
+  data.forEach(r=>{
+    if(!groups[r.leaderId]){
+      groups[r.leaderId] = []
+    }
+    groups[r.leaderId].push(r)
+  })
 
-// 同盟→集結主順
-let sortedRallies=[...new Set(data.map(x=>x.rally))].sort((a,b)=>{
+  const sortedLeaders = Object.keys(groups).sort((a,b)=>{
 
-let pa=players.find(p=>p.name===a)
-let pb=players.find(p=>p.name===b)
+    const aa = groups[a][0].alliance || ""
+    const bb = groups[b][0].alliance || ""
 
-let aa=pa&&pa.alliance?pa.alliance:""
-let ab=pb&&pb.alliance?pb.alliance:""
+    const c = aa.localeCompare(bb)
+    if(c !== 0) return c
 
-let c=aa.localeCompare(ab)
-if(c!==0) return c
+    return groups[a][0].leaderName.localeCompare(groups[b][0].leaderName)
+  })
 
-return a.localeCompare(b)
+  window.copyData = {}
 
-})
+  sortedLeaders.forEach(leaderId=>{
 
-window.copyData={}
+    const rows = groups[leaderId]
+    const first = rows[0]
 
-sortedRallies.forEach(leader=>{
+    html += `<div class="result-group">`
+    html += `<h3>${escapeHtml(first.alliance)}</h3>`
+    html += `<div class="result-row"><strong>${escapeHtml(first.leaderName)} ${escapeHtml(first.rate)}</strong></div>`
 
-let rally=rallies.find(x=>x.rally===leader)
-let rate=rally?rally.rate:""
+    let text = `${first.alliance}\n${first.leaderName} ${first.rate}\n`
 
-let leaderPlayer=players.find(p=>p.name===leader)
-let alliance=leaderPlayer&&leaderPlayer.alliance?leaderPlayer.alliance:"未所属"
+    rows.forEach(r=>{
+      html += `<div class="result-row">${escapeHtml(r.hero)} ${escapeHtml(r.playerName)}</div>`
+      text += `${r.hero} ${r.playerName}\n`
+    })
 
-html+=`<div class="result-group">`
+    html += `<button onclick="copyLeader('${leaderId}')">コピー</button>`
+    html += `</div>`
 
-html+=`<h3>${alliance}</h3>`
-html+=`<div class="result-row"><strong>${leader} ${rate}</strong></div>`
+    window.copyData[leaderId] = text
+  })
 
-let text=`${alliance}\n${leader} ${rate}\n`
+  if(data.length === 0){
+    html += `<p>結果はまだありません</p>`
+  }
 
-groups[leader].forEach(r=>{
-
-html+=`<div class="result-row">${r.hero} ${r.player}</div>`
-
-text+=`${r.hero} ${r.player}\n`
-
-})
-
-html+=`<button onclick="copyLeader('${leader}')">コピー</button>`
-
-html+=`</div>`
-
-copyData[leader]=text
-
-})
-
-document.getElementById("resultTable").innerHTML=html
-
+  document.getElementById("resultTable").innerHTML = html
+  afterRender()
 }
 
-function copyLeader(name){
+function copyLeader(id){
 
-navigator.clipboard.writeText(copyData[name])
+  const text = window.copyData[id] || ""
 
-alert("コピーしました")
-
+  navigator.clipboard.writeText(text)
+  .then(()=>{
+    alert("コピーしました")
+  })
+  .catch(()=>{
+    alert("コピーに失敗しました")
+  })
 }
+
+window.assign = assign
+window.renderResult = renderResult
+window.copyLeader = copyLeader

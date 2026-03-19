@@ -1,107 +1,77 @@
-// Firestore 版 storage.js
+const listeners = {}
 
-const COLLECTION = "data"
-const DOC_ID = "app"
-
-/* ローカルキャッシュ */
-let cache = {
-  players: [],
-  rallies: [],
+window.appState = {
+  heroes: [],
   alliances: [],
-  heroMaster: []
+  players: [],
+  rallies: []
 }
 
-/* 初期化 */
-window.initStorage = async function () {
-
-  const { doc, getDoc, setDoc, onSnapshot } = window._fs
-  const db = window._db
-
-  const ref = doc(db, COLLECTION, DOC_ID)
-
-  let snap = await getDoc(ref)
-
-  if (!snap.exists()) {
-    await setDoc(ref, cache)
-  } else {
-    cache = snap.data() || {}
-
-    cache.players = Array.isArray(cache.players) ? cache.players : []
-    cache.rallies = Array.isArray(cache.rallies) ? cache.rallies : []
-    cache.alliances = Array.isArray(cache.alliances) ? cache.alliances : []
-    cache.heroMaster = Array.isArray(cache.heroMaster) ? cache.heroMaster : []
+function cloneValue(value){
+  if(Array.isArray(value)){
+    return value.map(v=>{
+      if(v && typeof v === "object"){
+        return { ...v }
+      }
+      return v
+    })
   }
 
-  // リアルタイム同期
-  onSnapshot(ref, (docSnap) => {
+  if(value && typeof value === "object"){
+    return { ...value }
+  }
 
-    if (!docSnap.exists()) return
-
-    cache = docSnap.data() || {}
-
-    cache.players = Array.isArray(cache.players) ? cache.players : []
-    cache.rallies = Array.isArray(cache.rallies) ? cache.rallies : []
-    cache.alliances = Array.isArray(cache.alliances) ? cache.alliances : []
-    cache.heroMaster = Array.isArray(cache.heroMaster) ? cache.heroMaster : []
-
-    // 再描画
-    if (typeof renderHeroes === "function") renderHeroes()
-    if (typeof renderPlayers === "function") renderPlayers()
-    if (typeof renderAlliances === "function") renderAlliances()
-    if (typeof renderPlayerHeroes === "function") renderPlayerHeroes()
-    if (typeof renderRally === "function") renderRally()
-
-  })
+  return value
 }
 
-/* 保存 */
-async function save(key, data) {
-
-  const { doc, updateDoc } = window._fs
-  const db = window._db
-
-  cache[key] = data
-
-  const ref = doc(db, COLLECTION, DOC_ID)
-
-  await updateDoc(ref, {
-    [key]: data
-  })
+function getState(key){
+  return cloneValue(window.appState[key])
 }
 
-/* 読み込み */
-function load(key) {
-  return Array.isArray(cache[key]) ? cache[key] : []
+function setState(key, value){
+  window.appState[key] = Array.isArray(value) ? value : []
+  notify(key)
+  notify("*")
 }
 
-/* タブ */
-function showTab(id){
+function notify(key){
+  if(!listeners[key]) return
 
-  document.querySelectorAll(".tab").forEach(t=>{
-    t.style.display="none"
-  })
-
-  // ▼追加：ボタンの状態管理
-  document.querySelectorAll(".tab-btn").forEach(btn=>{
-    btn.classList.remove("active")
-  })
-
-  // onclickからid逆引き
-  document.querySelectorAll(".tab-btn").forEach(btn=>{
-    if(btn.getAttribute("onclick").includes(`'${id}'`)){
-      btn.classList.add("active")
+  listeners[key].forEach(fn=>{
+    try{
+      fn(getState(key), key)
+    }
+    catch(err){
+      console.error(err)
     }
   })
+}
 
-  let el=document.getElementById(id)
-
-  if(el){
-    el.style.display="block"
+function subscribe(key, fn){
+  if(!listeners[key]){
+    listeners[key] = []
   }
 
-  if(id==="heroes" && typeof renderHeroes==="function") renderHeroes()
-  if(id==="alliances" && typeof renderAlliances==="function") renderAlliances()
-  if(id==="players" && typeof renderPlayers==="function") renderPlayers()
-  if(id==="playerHeroes" && typeof renderPlayerHeroes==="function") renderPlayerHeroes()
-  if(id==="rally" && typeof renderRally==="function") renderRally()
+  listeners[key].push(fn)
 }
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
+function afterRender(){
+  if(typeof applyPermission === "function"){
+    applyPermission()
+  }
+}
+
+window.getState = getState
+window.setState = setState
+window.subscribe = subscribe
+window.escapeHtml = escapeHtml
+window.afterRender = afterRender
