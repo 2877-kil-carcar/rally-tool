@@ -9,15 +9,37 @@
 
 <body>
 
+<div id="loginModal" style="
+position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.8);
+display:flex;align-items:center;justify-content:center;
+z-index:9999;
+">
+
+<div style="background:#2b2d36;padding:20px;border-radius:8px;text-align:center">
+
+<h2>管理者ですか？</h2>
+
+<button onclick="selectRole(true)">YES</button>
+<button onclick="selectRole(false)">NO</button>
+
+<div id="adminLogin" style="display:none;margin-top:10px;">
+<input type="password" id="adminPass" placeholder="パスワード">
+<button onclick="loginAdmin()">ログイン</button>
+</div>
+
+</div>
+</div>
+
 <h1>我らがとりかまの集結振り分けツール</h1>
 
 <div class="tabs">
-<button onclick="showTab('heroes')">英雄</button>
-<button onclick="showTab('alliances')">同盟</button>
-<button onclick="showTab('players')">プレイヤー</button>
-<button onclick="showTab('playerHeroes')">所持英雄</button>
-<button onclick="showTab('rally')">集結</button>
-<button onclick="showTab('result')">結果</button>
+<button class="tab-btn" onclick="showTab('heroes')">英雄</button>
+<button class="tab-btn" onclick="showTab('alliances')">同盟</button>
+<button class="tab-btn" onclick="showTab('players')">プレイヤー</button>
+<button class="tab-btn" onclick="showTab('playerHeroes')">所持英雄</button>
+<button class="tab-btn" onclick="showTab('rally')">集結</button>
+<button class="tab-btn" onclick="showTab('result')">結果</button>
 </div>
 
 <div id="heroes" class="tab"></div>
@@ -31,6 +53,7 @@
 </div>
 
 <script src="storage.js"></script>
+<script src="auth.js"></script>
 <script src="heroes.js"></script>
 <script src="players.js"></script>
 <script src="alliances.js"></script>
@@ -40,6 +63,46 @@
 
 <script>
 showTab("heroes")
+</script>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+/* ★ 自分のプロジェクトに置き換え */
+const firebaseConfig = {
+  apiKey: "XXX",
+  authDomain: "XXX",
+  projectId: "XXX",
+  storageBucket: "XXX",
+  messagingSenderId: "XXX",
+  appId: "XXX"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+/* グローバル公開（既存コードから使う） */
+window._db = db;
+window._auth = auth;
+window._fs = { doc, getDoc, setDoc, updateDoc, onSnapshot };
+
+/* 匿名ログイン */
+signInAnonymously(auth);
+
+/* ログイン後に初期化 */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  console.log("UID:", user.uid);
+
+  // storage初期化
+  if (window.initStorage) {
+    await window.initStorage();
+  }
+});
 </script>
 
 </body>
