@@ -69,6 +69,9 @@ renderRally()
 }
 
 function renderRally(){
+  let players = window.players || []
+
+  if(!Array.isArray(players)) return
 
 let html=`
 <h2>集結設定</h2>

@@ -1,4 +1,8 @@
 function renderPlayerHeroes(){
+    
+  let players = window.players || []
+
+  if(!Array.isArray(players)) return
 
 const container=document.getElementById("playerHeroes")
 

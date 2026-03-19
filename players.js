@@ -39,6 +39,11 @@ export async function initPlayers() {
   })
 
   renderPlayers()
+  window.players = players
+  window.alliances = alliances
+
+  if(window.renderPlayerHeroes) window.renderPlayerHeroes()
+  if(window.renderRally) window.renderRally()
 }
 
 // ----------------------
@@ -197,3 +202,6 @@ window.deletePlayer = deletePlayer
 // 起動
 // ----------------------
 initPlayers()
+
+window.players = players
+window.alliances = alliances
