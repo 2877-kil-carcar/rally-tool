@@ -24,7 +24,13 @@ window.initStorage = async function () {
   if (!snap.exists()) {
     await setDoc(ref, cache)
   } else {
-    cache = snap.data()
+    cache = snap.data() || {}
+
+    // ★ここ追加（保険）
+    cache.players = cache.players || []
+    cache.rallies = cache.rallies || []
+    cache.alliances = cache.alliances || []
+    cache.heroMaster = cache.heroMaster || []
   }
 
   // リアルタイム同期
@@ -32,7 +38,13 @@ window.initStorage = async function () {
 
     if (!docSnap.exists()) return
 
-    cache = docSnap.data()
+    cache = docSnap.data() || {}
+
+    // ★ここも同じ保険（重要）
+    cache.players = cache.players || []
+    cache.rallies = cache.rallies || []
+    cache.alliances = cache.alliances || []
+    cache.heroMaster = cache.heroMaster || []
 
     // 再描画
     if (typeof renderHeroes === "function") renderHeroes()
@@ -61,7 +73,7 @@ async function save(key, data) {
 
 /* 読み込み */
 function load(key) {
-  return cache[key] || []
+  return Array.isArray(cache[key]) ? cache[key] : []
 }
 
 /* タブ */
