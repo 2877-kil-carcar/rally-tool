@@ -46,6 +46,7 @@ function assign(){
     if(!leader) return
 
     const rallyAlliance = leader.alliance || ""
+    const marchTime = r.marchTime || 0
 
     ;(Array.isArray(r.heroes) ? r.heroes : []).forEach(h=>{
 
@@ -62,9 +63,15 @@ function assign(){
         (p.alliance || "") === rallyAlliance
       )
 
-      candidates = shuffle([...candidates])
+      const isRandom = document.getElementById("randomAssign")?.checked
 
-      candidates.forEach(p=>{
+      let assignCandidates = [...candidates]
+
+      if(isRandom){
+        assignCandidates = shuffle(assignCandidates)
+      }
+
+      assignCandidates.forEach(p=>{
 
         if(count <= 0) return
 
@@ -73,6 +80,7 @@ function assign(){
           leaderName: leader.name,
           alliance: rallyAlliance || "未所属",
           rate: r.rate || "",
+          marchTime: marchTime,
           hero: h.hero,
           playerName: p.name
         })
@@ -88,6 +96,7 @@ function assign(){
           leaderName: leader.name,
           alliance: rallyAlliance || "未所属",
           rate: r.rate || "",
+          marchTime: marchTime,
           hero: h.hero,
           playerName: "不在"
         })
@@ -133,9 +142,13 @@ function renderResult(data){
 
     html += `<div class="result-group">`
     html += `<h3>${escapeHtml(first.alliance)}</h3>`
-    html += `<div class="result-row"><strong>${escapeHtml(first.leaderName)} ${escapeHtml(first.rate)}</strong></div>`
 
-    let text = `${first.alliance}\n${first.leaderName} ${first.rate}\n`
+    html += `<div class="result-row"><strong>${escapeHtml(first.leaderName)} ${escapeHtml(first.rate)}</strong></div>`
+    html += `<div class="result-row">行軍 ${escapeHtml(first.marchTime)}秒</div>`
+
+    let text = `${first.alliance}\n`
+    text += `${first.leaderName} ${first.rate}\n`
+    text += `行軍 ${first.marchTime}秒\n\n`
 
     rows.forEach(r=>{
       html += `<div class="result-row">${escapeHtml(r.hero)} ${escapeHtml(r.playerName)}</div>`

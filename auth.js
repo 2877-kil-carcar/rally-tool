@@ -1,4 +1,4 @@
-const ADMIN_PASSWORD = "destiny"
+const ADMIN_PASSWORD = "prev"
 
 let isAdmin = false
 
@@ -48,6 +48,8 @@ function applyPermission(){
 
   if(isAdmin){
     document.querySelectorAll("button,input,select").forEach(el=>{
+      // ★更新ボタンは除外
+      if(el.id && (el.id.startsWith("btn_") || el.id.startsWith("alliance_btn_"))) return
       el.disabled = false
     })
     return

@@ -49,6 +49,10 @@ z-index:9999;
 <div id="rally" class="tab"></div>
 <div id="result" class="tab">
 <button onclick="assign()">自動振り分け</button>
+<label>
+  <input type="checkbox" id="randomAssign" checked>
+  乗り手ランダム
+</label>
 <div id="resultTable"></div>
 </div>
 
@@ -191,6 +195,7 @@ function startRealtimeSync(){
           id: doc.id,
           leaderId: data.leaderId || "",
           rate: data.rate || "",
+          marchTime: Number(data.marchTime || 0),
           heroes: Array.isArray(data.heroes) ? data.heroes : [],
           active: data.active !== false
         })

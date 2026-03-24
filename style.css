@@ -123,3 +123,53 @@ background:#22c55e;
 .result-row{
 margin:4px 0;
 }
+
+.changed-input{
+  border:2px solid #f59e0b; /* オレンジ */
+  background:#3a2f1a;
+}
+
+.table-wrap{
+  overflow-x:auto;
+  margin-bottom:16px;
+}
+
+.hero-table{
+  border-collapse:collapse;
+  min-width:max-content;
+}
+
+.hero-table th,
+.hero-table td{
+  padding:6px 10px;
+  white-space:nowrap;
+}
+
+/* 左列固定 */
+.sticky-col{
+  position:sticky;
+  left:0;
+  background:#2b2d36;
+  z-index:2;
+}
+
+/* 左上セルだけ最前面 */
+.header-corner{
+  z-index:3;
+}
+
+/* ヘッダー固定（任意） */
+.hero-table th{
+  position:sticky;
+  top:0;
+  background:#2b2d36;
+  z-index:1;
+}
+
+.active-rally{
+  background:#1f3b2b; /* 濃い緑 */
+}
+
+.active-rally td{
+  border-color:#22c55e;
+}

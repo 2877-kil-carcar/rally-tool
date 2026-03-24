@@ -1,19 +1,44 @@
-function heroOptions(){
+let editingId = null // ★追加：編集中ID
+
+function heroOptions(selected = ""){
 
   const heroMaster = getState("heroes")
 
   let html = `<option value="">なし</option>`
 
   heroMaster.forEach(h=>{
-    html += `<option value="${escapeHtml(h.name)}">${escapeHtml(h.name)}</option>`
+    const sel = h.name === selected ? "selected" : ""
+    html += `<option value="${escapeHtml(h.name)}" ${sel}>${escapeHtml(h.name)}</option>`
   })
 
   return html
 }
 
+function clearRallyForm(){
+
+  const rate1 = document.getElementById("rate1")
+  const rate2 = document.getElementById("rate2")
+  const rate3 = document.getElementById("rate3")
+  const marchTime = document.getElementById("marchTime")
+
+  if(rate1) rate1.value = ""
+  if(rate2) rate2.value = ""
+  if(rate3) rate3.value = ""
+  if(marchTime) marchTime.value = ""
+
+  for(let i = 1; i <= 4; i++){
+    const hero = document.getElementById("hero" + i)
+    const need = document.getElementById("need" + i)
+
+    if(hero) hero.value = ""
+    if(need) need.value = ""
+  }
+}
+
+// ❌ loadRallyToFormは使わない（残すが未使用）
+
 async function addRally(){
 
-  const rallies = getState("rallies")
   const players = getState("players")
 
   const leaderId = document.getElementById("rallyLeader").value
@@ -21,19 +46,20 @@ async function addRally(){
   const r1 = Number(document.getElementById("rate1").value || 0)
   const r2 = Number(document.getElementById("rate2").value || 0)
   const r3 = Number(document.getElementById("rate3").value || 0)
+  const marchTime = Number(document.getElementById("marchTime").value || 0)
 
   if(!leaderId){
     alert("集結主を選択してください")
     return
   }
 
-  if(rallies.some(r=>r.leaderId === leaderId)){
-    alert("同じ集結主は登録できません")
+  if(r1 + r2 + r3 !== 100){
+    alert("割合合計は100にしてください")
     return
   }
 
-  if(r1 + r2 + r3 !== 100){
-    alert("割合合計は100にしてください")
+  if(!Number.isInteger(marchTime) || marchTime < 0){
+    alert("行軍時間は0以上の整数で入力してください")
     return
   }
 
@@ -66,10 +92,10 @@ async function addRally(){
   }
 
   try{
-    getHero("hero1","need1")
-    getHero("hero2","need2")
-    getHero("hero3","need3")
-    getHero("hero4","need4")
+    getHero("hero1", "need1")
+    getHero("hero2", "need2")
+    getHero("hero3", "need3")
+    getHero("hero4", "need4")
   }
   catch(e){
     alert(e.message)
@@ -81,26 +107,138 @@ async function addRally(){
     return
   }
 
+  const total = heroes.reduce((sum, h) => sum + h.need, 0)
+
+  if(total > 4){
+    alert("英雄人数の合計は4までです")
+    return
+  }
   const leader = players.find(p=>p.id === leaderId)
   if(!leader){
     alert("集結主が見つかりません")
     return
   }
 
+  // ★変更：常に新規追加
   await window.db.collection("rallies").add({
     leaderId: leaderId,
     rate: rate,
+    marchTime: marchTime,
     heroes: heroes,
-    active: true,
+    active: false,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   })
+
+  clearRallyForm()
+}
+
+// ★追加：更新処理
+async function updateRally(id){
+
+  const r1 = Number(document.getElementById("edit_rate1").value || 0)
+  const r2 = Number(document.getElementById("edit_rate2").value || 0)
+  const r3 = Number(document.getElementById("edit_rate3").value || 0)
+  const marchTime = Number(document.getElementById("edit_marchTime").value || 0)
+
+  if(r1 + r2 + r3 !== 100){
+    alert("割合合計は100にしてください")
+    return
+  }
+
+  if(!Number.isInteger(marchTime) || marchTime < 0){
+    alert("行軍時間は0以上の整数で入力してください")
+    return
+  }
+
+  const rate = `${r1}.${r2}.${r3}`
+
+  const heroes = []
+  const heroNames = new Set()
+
+  try{
+    for(let i = 1; i <= 4; i++){
+
+      const hero = document.getElementById("edit_hero" + i).value
+      const needRaw = document.getElementById("edit_need" + i).value
+
+      if(!hero) continue
+
+      const need = Number(needRaw)
+
+      if(!Number.isInteger(need) || need < 1 || need > 4){
+        throw new Error("人数は1～4で入力してください")
+      }
+
+      if(heroNames.has(hero)){
+        throw new Error("同じ英雄は同一集結に重複登録できません")
+      }
+
+      heroNames.add(hero)
+      heroes.push({ hero, need })
+    }
+  }
+  catch(e){
+    alert(e.message)
+    return
+  }
+
+  if(heroes.length === 0){
+    alert("英雄を1つ以上登録してください")
+    return
+  }
+
+  const total = heroes.reduce((sum, h) => sum + h.need, 0)
+
+  if(total > 4){
+    alert("英雄人数の合計は4までです")
+    return
+  }
+
+  await window.db.collection("rallies").doc(id).update({
+    rate,
+    marchTime,
+    heroes
+  })
+
+  editingId = null
+  renderRally()
+}
+
+function startEdit(id){
+  editingId = id
+  renderRally()
+}
+
+function cancelEdit(){
+  editingId = null
+  renderRally()
 }
 
 async function toggleRally(id, current){
 
-  await window.db.collection("rallies").doc(id).update({
-    active: !current
-  })
+  const rallies = getState("rallies")
+  const target = rallies.find(r=>r.id === id)
+  if(!target) return
+
+  const batch = window.db.batch()
+
+  if(!current){
+    rallies.forEach(r=>{
+      if(r.leaderId === target.leaderId && r.id !== id && r.active){
+        batch.update(
+          window.db.collection("rallies").doc(r.id),
+          { active:false }
+        )
+      }
+    })
+  }
+
+  batch.update(
+    window.db.collection("rallies").doc(id),
+    { active: !current }
+  )
+
+  await batch.commit()
 }
 
 async function deleteRally(id){
@@ -114,6 +252,11 @@ function renderRally(){
 
   const players = getState("players")
   const rallies = getState("rallies")
+
+  // ❌ normalize削除（全OFF許可）
+
+  const currentLeaderSelect = document.getElementById("rallyLeader")
+  const selectedLeaderId = currentLeaderSelect ? currentLeaderSelect.value : ""
 
   let html = `
   <h2>集結設定</h2>
@@ -146,7 +289,8 @@ function renderRally(){
     html += `<optgroup label="${escapeHtml(alliance)}">`
 
     playerGroups[alliance].forEach(p=>{
-      html += `<option value="${p.id}">${escapeHtml(p.name)}</option>`
+      const selected = p.id === selectedLeaderId ? "selected" : ""
+      html += `<option value="${p.id}" ${selected}>${escapeHtml(p.name)}</option>`
     })
 
     html += `</optgroup>`
@@ -154,6 +298,9 @@ function renderRally(){
 
   html += `
   </select>
+
+  行軍時間
+  <input id="marchTime" type="number" min="0">
 
   割合
   <input id="rate1" class="rate-input" type="number" min="0" max="100">
@@ -184,7 +331,7 @@ function renderRally(){
   人数 <input id="need4" type="number" min="1" max="4">
   </div>
 
-  <button onclick="addRally()">追加</button>
+  <button onclick="addRally()">登録</button>
   `
 
   const rallyGroups = {}
@@ -212,6 +359,7 @@ function renderRally(){
     <th>集結主</th>
     <th>参加</th>
     <th>割合</th>
+    <th>行軍</th>
     <th>英雄</th>
     <th>人数</th>
     <th></th>
@@ -219,7 +367,12 @@ function renderRally(){
     `
 
     rallyGroups[alliance]
-      .sort((a,b)=>a.leaderName.localeCompare(b.leaderName))
+      .sort((a,b)=>{
+        if(a.active !== b.active){
+          return a.active ? -1 : 1
+        }
+        return a.leaderName.localeCompare(b.leaderName)
+      })
       .forEach(r=>{
 
         const heroes = Array.isArray(r.heroes) ? r.heroes : []
@@ -227,7 +380,7 @@ function renderRally(){
         heroes.forEach((h,index)=>{
 
           html += `
-          <tr>
+          <tr class="${r.active ? "active-rally" : ""}">
           <td>${index === 0 ? escapeHtml(r.leaderName) : ""}</td>
 
           <td>
@@ -238,18 +391,61 @@ function renderRally(){
           </td>
 
           <td>${index === 0 ? escapeHtml(r.rate) : ""}</td>
+          <td>${index === 0 ? escapeHtml(r.marchTime ?? "") : ""}</td>
           <td>${escapeHtml(h.hero)}</td>
           <td>${escapeHtml(h.need)}</td>
-          <td>${index === 0 ? `<button onclick="deleteRally('${r.id}')">削除</button>` : ""}</td>
+
+          <td>
+          ${index === 0 ? `
+            <button onclick="startEdit('${r.id}')">更新</button>
+            <button onclick="deleteRally('${r.id}')">削除</button>
+          ` : ""}
+          </td>
           </tr>
           `
         })
+
+        // ★追加：編集エリア（行下）
+        if(editingId === r.id){
+
+          const rate = (r.rate || "").split(".")
+
+          html += `
+          <tr>
+          <td colspan="7">
+            <div style="padding:10px;border:1px solid #ccc;">
+              行軍時間 <input id="edit_marchTime" value="${r.marchTime ?? ""}"><br>
+
+              割合
+              <input id="edit_rate1" value="${rate[0]||""}"> .
+              <input id="edit_rate2" value="${rate[1]||""}"> .
+              <input id="edit_rate3" value="${rate[2]||""}"><br>
+          `
+
+          for(let i=1;i<=4;i++){
+            const h = r.heroes[i-1] || {}
+            html += `
+              英雄 <select id="edit_hero${i}">${heroOptions(h.hero || "")}</select>
+              人数 <input id="edit_need${i}" value="${h.need||""}"><br>
+            `
+          }
+
+          html += `
+              <button onclick="updateRally('${r.id}')">保存</button>
+              <button onclick="cancelEdit()">キャンセル</button>
+            </div>
+          </td>
+          </tr>
+          `
+        }
+
       })
 
     html += `</table>`
   })
 
   document.getElementById("rally").innerHTML = html
+
   afterRender()
 }
 
@@ -259,6 +455,9 @@ subscribe("rallies", renderRally)
 renderRally()
 
 window.addRally = addRally
+window.updateRally = updateRally
+window.startEdit = startEdit
+window.cancelEdit = cancelEdit
 window.toggleRally = toggleRally
 window.deleteRally = deleteRally
 window.renderRally = renderRally

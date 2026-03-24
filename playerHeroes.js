@@ -16,14 +16,40 @@ function renderPlayerHeroes(){
     window.playerHeroesSelectedPlayerId = players[0].id
   }
 
+  // --- 並び替え ---
+  const sorted = players.slice().sort((a,b)=>{
+    const aa = a.alliance || ""
+    const bb = b.alliance || ""
+    const c = aa.localeCompare(bb)
+    if(c !== 0) return c
+    return a.name.localeCompare(b.name)
+  })
+
+  // --- グループ化 ---
+  const groups = {}
+  sorted.forEach(p=>{
+    const key = p.alliance || "未所属"
+    if(!groups[key]) groups[key] = []
+    groups[key].push(p)
+  })
+
   let html = `
   <h2>所持英雄登録</h2>
 
   <select id="playerSelect" onchange="changePlayerHeroTarget(this.value)">
   `
 
-  players.forEach(p=>{
-    html += `<option value="${p.id}" ${p.id === window.playerHeroesSelectedPlayerId ? "selected" : ""}>${escapeHtml(p.name)}</option>`
+  // --- optgroup ---
+  Object.keys(groups).forEach(alliance=>{
+    html += `<optgroup label="${escapeHtml(alliance)}">`
+
+    groups[alliance].forEach(p=>{
+      html += `<option value="${p.id}" ${p.id === window.playerHeroesSelectedPlayerId ? "selected" : ""}>
+      ${escapeHtml(p.name)}
+      </option>`
+    })
+
+    html += `</optgroup>`
   })
 
   html += `
@@ -32,7 +58,48 @@ function renderPlayerHeroes(){
   <div id="heroList"></div>
 
   <button onclick="savePlayerHeroes()">保存</button>
+
+  <hr>
+
+  <h3>登録一覧</h3>
   `
+
+  // =========================
+  // 一覧テーブル
+  // =========================
+
+  Object.keys(groups).forEach(alliance=>{
+
+    html += `<h4>${escapeHtml(alliance)}</h4>`
+
+    html += `<div class="table-wrap">`  // ★追加
+
+    html += `<table class="hero-table"><tr>
+    <th class="sticky-col header-corner">
+      英雄名 →<br>プレイヤー名 ↓
+    </th>`
+    
+    heroes.forEach(h=>{
+      html += `<th>${escapeHtml(h.name)}</th>`
+    })
+
+    html += `</tr>`
+
+    groups[alliance].forEach(p=>{
+
+      html += `<tr>`
+      html += `<td>${escapeHtml(p.name)}</td>`
+
+      heroes.forEach(h=>{
+        const has = Array.isArray(p.heroes) && p.heroes.includes(h.name)
+        html += `<td>${has ? "●" : ""}</td>`
+      })
+
+      html += `</tr>`
+    })
+
+    html += `</table></div>` // ★閉じる
+  })
 
   container.innerHTML = html
 
