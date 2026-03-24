@@ -40,6 +40,7 @@ z-index:9999;
 <button class="tab-btn" onclick="showTab('playerHeroes')">所持英雄</button>
 <button class="tab-btn" onclick="showTab('rally')">集結</button>
 <button class="tab-btn" onclick="showTab('result')">結果</button>
+<button class="tab-btn" onclick="renderCountup()">カウントアップ</button>
 </div>
 
 <div id="heroes" class="tab"></div>
@@ -54,6 +55,7 @@ z-index:9999;
   乗り手ランダム
 </label>
 <div id="resultTable"></div>
+<div id="countup"></div>
 </div>
 
 <script>
@@ -93,6 +95,7 @@ function showTab(tabId){
 <script src="playerHeroes.js"></script>
 <script src="rally.js"></script>
 <script src="assign.js"></script>
+<script src="countup.js"></script>
 
 <script>
 const firebaseConfig = {
