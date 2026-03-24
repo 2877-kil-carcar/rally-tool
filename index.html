@@ -40,7 +40,7 @@ z-index:9999;
 <button class="tab-btn" onclick="showTab('playerHeroes')">所持英雄</button>
 <button class="tab-btn" onclick="showTab('rally')">集結</button>
 <button class="tab-btn" onclick="showTab('result')">結果</button>
-<button class="tab-btn" onclick="renderCountup()">カウントアップ</button>
+<button class="tab-btn" onclick="showTab('countupTab')">カウントアップ</button>
 </div>
 
 <div id="heroes" class="tab"></div>
@@ -48,6 +48,7 @@ z-index:9999;
 <div id="alliances" class="tab"></div>
 <div id="playerHeroes" class="tab"></div>
 <div id="rally" class="tab"></div>
+
 <div id="result" class="tab">
 <button onclick="assign()">自動振り分け</button>
 <label>
@@ -55,8 +56,10 @@ z-index:9999;
   乗り手ランダム
 </label>
 <div id="resultTable"></div>
-<div id="countup"></div>
 </div>
+
+<!-- ★追加：カウントアップ専用タブ -->
+<div id="countupTab" class="tab"></div>
 
 <script>
 function showTab(tabId){
@@ -80,6 +83,11 @@ function showTab(tabId){
       btn.classList.add("active")
     }
   })
+
+  // ★ここが重要（描画トリガ）
+  if(tabId === "countupTab"){
+    renderCountup()
+  }
 }
 </script>
 
@@ -123,7 +131,6 @@ function clearFirestoreListeners(){
       console.error(e)
     }
   })
-
   window.firestoreUnsubscribers = []
 }
 
@@ -141,7 +148,6 @@ function startRealtimeSync(){
           name: data.name || ""
         })
       })
-
       list.sort((a,b)=>a.name.localeCompare(b.name))
       setState("heroes", list)
     }, err=>console.error("heroes sync error", err))
@@ -157,7 +163,6 @@ function startRealtimeSync(){
           name: data.name || ""
         })
       })
-
       list.sort((a,b)=>a.name.localeCompare(b.name))
       setState("alliances", list)
     }, err=>console.error("alliances sync error", err))
@@ -176,7 +181,6 @@ function startRealtimeSync(){
           active: data.active !== false
         })
       })
-
       list.sort((a,b)=>{
         const aa = a.alliance || ""
         const bb = b.alliance || ""
@@ -184,7 +188,6 @@ function startRealtimeSync(){
         if(c !== 0) return c
         return a.name.localeCompare(b.name)
       })
-
       setState("players", list)
     }, err=>console.error("players sync error", err))
   )
@@ -203,7 +206,6 @@ function startRealtimeSync(){
           active: data.active !== false
         })
       })
-
       list.sort((a,b)=>a.leaderId.localeCompare(b.leaderId))
       setState("rallies", list)
     }, err=>console.error("rallies sync error", err))

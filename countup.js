@@ -83,7 +83,7 @@ function renderCountup(){
 
   html += `<div id="countupResult"></div>`
 
-  document.getElementById("countup").innerHTML = html
+  document.getElementById("countupTab").innerHTML = html
 }
 
 // --- 操作系 ---
