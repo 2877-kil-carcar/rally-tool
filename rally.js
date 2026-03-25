@@ -217,8 +217,17 @@ function cancelEdit(){
 async function toggleRally(id, current){
 
   const rallies = getState("rallies")
+  const players = getState("players")
   const target = rallies.find(r=>r.id === id)
   if(!target) return
+
+  const leader = players.find(p=>p.id === target.leaderId)
+
+  // ★ここ追加（最重要）
+  if(!current && leader && leader.active === false){
+    alert("このプレイヤーは参加OFFのため使用できません")
+    return
+  }
 
   const batch = window.db.batch()
 
@@ -357,7 +366,7 @@ function renderRally(){
     <table>
     <tr>
     <th>集結主</th>
-    <th>参加</th>
+    <th>使用</th>
     <th>割合</th>
     <th>行軍</th>
     <th>英雄</th>
