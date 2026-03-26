@@ -60,16 +60,28 @@ function applyPermission(){
     if(btn.closest("#loginModal")) return
     if(btn.innerText.includes("自動振り分け")) return
 
+    if(btn.closest("#countupTab")) return
+
     btn.disabled = true
   })
 
   document.querySelectorAll("input,select").forEach(el=>{
     if(el.id === "adminPass") return
+    if(
+      el.closest("#countupTab") ||   // カウントアップ
+      el.closest("#result")          // 結果タブ
+    ){
+      return
+    }
+
     el.disabled = true
   })
 
   document.querySelectorAll(".tabs button").forEach(btn=>{
-    btn.disabled = btn.innerText !== "結果"
+    btn.disabled = !(
+      btn.innerText === "結果" ||
+      btn.innerText === "カウントアップ"
+    )
   })
 
   showTab("result")
