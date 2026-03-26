@@ -152,9 +152,9 @@ function renderPlayers(){
     <table>
     <tr>
     <tr></th>
+    <th></th>
     <th>プレイヤー</th>
     <th>参加</th>
-    <th></th>
     </tr>
     `
 
