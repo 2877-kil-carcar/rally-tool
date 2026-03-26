@@ -1,4 +1,4 @@
-const ADMIN_PASSWORD = "prev"
+const ADMIN_PASSWORD = "destiny"
 
 let isAdmin = false
 
