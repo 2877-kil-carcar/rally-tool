@@ -315,3 +315,37 @@ z-index: 1;
 #rally table tr.active-rally.rally-gorgeous{
 background: rgba(255,215,0,0.12) !important;
 }
+
+/* =========================
+★ OFF時は通常に戻す（追加）
+========================= */
+#rally table tr.rally-gorgeous:not(.active-rally){
+box-shadow: none !important;
+animation: none !important;
+}
+
+#rally table tr.rally-gorgeous:not(.active-rally) td{
+background: none !important;
+border-color: #3a3c46 !important; /* 元の色に戻す */
+}
+
+/* アイコンもOFF時は消す */
+#rally table tr.rally-gorgeous-first:not(.active-rally) td:nth-child(1)::before{
+content: none !important;
+}
+
+/* =========================
+★ ON時だけ強制適用（保険）
+========================= */
+#rally table tr.active-rally.rally-gorgeous{
+box-shadow:
+0 0 8px gold,
+0 0 16px gold,
+0 0 24px rgba(255,215,0,0.6) !important;
+animation: glow 1.5s infinite alternate !important;
+}
+
+#rally table tr.active-rally.rally-gorgeous td{
+background: rgba(255,215,0,0.12) !important;
+border-color: gold !important;
+}
