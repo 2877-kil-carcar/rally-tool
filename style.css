@@ -353,7 +353,7 @@ box-shadow:
 }
 
 /* ネオン */
-.destiny-highlight td{
+.destiny-highlight td:nth-child(2)::after{
   content: "";
   position: absolute;
   inset: -2px;
@@ -376,12 +376,12 @@ box-shadow:
 
 /* ===== rally側 ===== */
 /* ★1列目だけに限定 */
-#rally table tr.rally-gorgeous td{
+#rally table tr.rally-gorgeous td:nth-child(1){
   position: relative;
   z-index: 1;
 }
 
-#rally table tr.rally-gorgeous td{
+#rally table tr.rally-gorgeous td:nth-child(1)::after{
   content: "";
   position: absolute;
   inset: -2px;
