@@ -349,3 +349,18 @@ animation: glow 1.5s infinite alternate !important;
 background: rgba(255,215,0,0.12) !important;
 border-color: gold !important;
 }
+
+
+/* ★全画面共通：スマホでも光る固定発光 */
+.destiny-highlight{
+box-shadow:
+0 0 10px gold,
+0 0 20px gold,
+0 0 30px rgba(255,215,0,0.6);
+}
+
+/* ★スマホ安定化 */
+.destiny-highlight{
+will-change: box-shadow;
+transform: translateZ(0);
+}
