@@ -347,13 +347,13 @@ box-shadow:
 
 /* ===== destiny（プレイヤー側） ===== */
 /* ★2列目だけに限定 */
-.destiny-highlight td:nth-child(2){
+.destiny-highlight td{
   position: relative;
   z-index: 1;
 }
 
 /* ネオン */
-.destiny-highlight td:nth-child(2)::after{
+.destiny-highlight td{
   content: "";
   position: absolute;
   inset: -2px;
@@ -376,12 +376,12 @@ box-shadow:
 
 /* ===== rally側 ===== */
 /* ★1列目だけに限定 */
-#rally table tr.rally-gorgeous td:nth-child(1){
+#rally table tr.rally-gorgeous td{
   position: relative;
   z-index: 1;
 }
 
-#rally table tr.rally-gorgeous td:nth-child(1)::after{
+#rally table tr.rally-gorgeous td{
   content: "";
   position: absolute;
   inset: -2px;
