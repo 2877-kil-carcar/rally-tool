@@ -370,8 +370,8 @@ border-color: gold !important;
   bottom: -2px;
 
   /* ★横にめちゃくちゃ伸ばす */
-  left: -200%;
-  right: -200%;
+  left: -100%;
+  right: -300%;
 
   background: linear-gradient(
     90deg,
@@ -418,8 +418,8 @@ border-color: gold !important;
 }
 
 @keyframes neon-slide{
-  0%   { transform: translateX(-20%); }
-  100% { transform: translateX(200%); }
+  0%   { transform: translateX(0%); }
+  100% { transform: translateX(300%); }
 }
 
 }
