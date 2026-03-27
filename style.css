@@ -350,25 +350,173 @@ background: rgba(255,215,0,0.12) !important;
 border-color: gold !important;
 }
 
+/* =========================
+★ スマホだけ別描写（既存は残す）
+========================= */
+@media (max-width: 768px){
 
-/* ★全画面共通：スマホでも光る固定発光 */
-.destiny-highlight{
+  /* --- 共通：box-shadowアニメを無効化 --- */
+  .destiny-highlight{
+  box-shadow: none !important;
+  animation: none !important;
+  position: relative;
+  }
+
+  /* --- 擬似発光レイヤー --- */
+  .destiny-highlight::after{
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 6px;
+
+    background: radial-gradient(
+      circle,
+      rgba(255,215,0,0.6) 0%,
+      rgba(255,215,0,0.3) 40%,
+      transparent 70%
+    );
+
+    animation: glow-safe 2.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+
+  }
+
+  /* --- 中身を前面 --- */
+  .destiny-highlight > *{
+  position: relative;
+  z-index: 1;
+  }
+
+  /* =========================
+  集結設定も同じ処理
+  ========================= */
+  #rally table tr.rally-gorgeous{
+  box-shadow: none !important;
+  animation: none !important;
+  position: relative;
+  }
+
+  #rally table tr.rally-gorgeous::after{
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 6px;
+
+    background: radial-gradient(
+      circle,
+      rgba(255,215,0,0.6) 0%,
+      rgba(255,215,0,0.3) 40%,
+      transparent 70%
+    );
+
+    animation: glow-safe 2.5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+
+  }
+
+  #rally table tr.rally-gorgeous td{
+  position: relative;
+  z-index: 1;
+  }
+
+}
+
+/* =========================
+★ スマホ用アニメ（確実に動く）
+========================= */
+@keyframes glow-safe{
+  0%{
+  opacity: 0.4;
+  transform: scale(1);
+  }
+  50%{
+  opacity: 0.9;
+  transform: scale(1.08);
+  }
+  100%{
+  opacity: 0.4;
+  transform: scale(1);
+  }
+}
+
+/* =========================
+★ PCでは集結のアニメを強制復活
+========================= */
+@media (min-width: 769px){
+
+  #rally table tr.rally-gorgeous{
+  animation: glow 1.5s infinite alternate !important;
+  box-shadow:
+  0 0 8px gold,
+  0 0 16px gold,
+  0 0 24px rgba(255,215,0,0.6) !important;
+  }
+
+}
+
+/* =========================
+★ PCではスマホ用レイヤーを消す
+========================= */
+@media (min-width: 769px){
+
+  .destiny-highlight::after{
+  content: none !important;
+  }
+
+  #rally table tr.rally-gorgeous::after{
+  content: none !important;
+  }
+
+}
+
+/* =========================
+★ 集結設定：PCは強制的に元に戻す
+========================= */
+@media (min-width: 769px){
+
+/* 余計なレイヤー完全排除 */
+#rally table tr.rally-gorgeous::after{
+display: none !important;
+}
+
+/* animationを強制復活 */
+#rally table tr.rally-gorgeous{
+animation: glow 1.5s infinite alternate !important;
 box-shadow:
-0 0 10px gold,
-0 0 20px gold,
-0 0 30px rgba(255,215,0,0.6);
-animation: glow-mobile 2.5s ease-in-out infinite alternate;
+0 0 8px gold,
+0 0 16px gold,
+0 0 24px rgba(255,215,0,0.6) !important;
 }
 
-/* ★スマホ安定化 */
-.destiny-highlight{
-will-change: box-shadow;
-transform: translateZ(0);
 }
 
-/* ★スマホ対応：tdにも発光をかける（重要） */
-.destiny-highlight td{
-animation: glow-mobile 2.5s ease-in-out infinite alternate;
-will-change: box-shadow;
-transform: translateZ(0);
+/* =========================
+★ スマホ：集結だけ専用処理
+========================= */
+@media (max-width: 768px){
+
+  #rally table tr.rally-gorgeous{
+  animation: none !important;
+  box-shadow: none !important;
+  position: relative;
+  }
+
+  #rally table tr.rally-gorgeous::after{
+    content: "";
+    position: absolute;
+    inset: -4px;
+
+    background: radial-gradient(
+      circle,
+      rgba(255,215,0,0.6),
+      transparent 70%
+    );
+
+    animation: glow-safe 2.5s ease-in-out infinite;
+    pointer-events: none;
+
+  }
+
 }
