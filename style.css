@@ -357,10 +357,18 @@ box-shadow:
 0 0 10px gold,
 0 0 20px gold,
 0 0 30px rgba(255,215,0,0.6);
+animation: glow-mobile 2.5s ease-in-out infinite alternate;
 }
 
 /* ★スマホ安定化 */
 .destiny-highlight{
+will-change: box-shadow;
+transform: translateZ(0);
+}
+
+/* ★スマホ対応：tdにも発光をかける（重要） */
+.destiny-highlight td{
+animation: glow-mobile 2.5s ease-in-out infinite alternate;
 will-change: box-shadow;
 transform: translateZ(0);
 }
