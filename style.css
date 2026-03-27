@@ -356,12 +356,12 @@ border-color: gold !important;
 @supports (-webkit-touch-callout: none){
 
 /* ===== destiny（プレイヤー側） ===== */
-.destiny-highlight{
+.destiny-highlight td{
   position: relative;
   z-index: 1;
 }
 /* ネオン */
-.destiny-highlight::after{
+.destiny-highlight td::after{
   content: "";
   position: absolute;
   inset: -2px;
