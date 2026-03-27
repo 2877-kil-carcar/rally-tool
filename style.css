@@ -347,7 +347,7 @@ box-shadow:
 
 /* ===== destiny（プレイヤー側） ===== */
 /* ★2列目だけに限定 */
-.destiny-highlight td{
+.destiny-highlight td:nth-child(2){
   position: relative;
   z-index: 1;
 }
