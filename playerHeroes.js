@@ -87,7 +87,9 @@ function renderPlayerHeroes(){
 
     groups[alliance].forEach(p=>{
 
-      html += `<tr>`
+      const isGorgeous = ["ディスティニー"].includes(p.name)
+
+      html += `<tr class="${isGorgeous ? "destiny-highlight" : ""}">`
       html += `<td>${escapeHtml(p.name)}</td>`
 
       heroes.forEach(h=>{

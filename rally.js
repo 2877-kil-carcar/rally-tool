@@ -382,73 +382,84 @@ function renderRally(){
         }
         return a.leaderName.localeCompare(b.leaderName)
       })
-      .forEach(r=>{
+    .forEach(r=>{
 
-        const heroes = Array.isArray(r.heroes) ? r.heroes : []
+      const heroes = Array.isArray(r.heroes) ? r.heroes : []
+      const isGorgeous = ["ディスティニー","ボス"].includes(r.leaderName)
 
-        heroes.forEach((h,index)=>{
+      heroes.forEach((h,index)=>{
 
+        const rowClasses = []
+        if(r.active){
+          rowClasses.push("active-rally")
+        }
+        if(isGorgeous){
+          rowClasses.push("rally-gorgeous")
+        }
+        if(isGorgeous && index === 1){
+          rowClasses.push("rally-gorgeous-first")
+        }
+
+        html += `
+        <tr class="${rowClasses.join(" ")}">
+        <td>${index === 0 ? escapeHtml(r.leaderName) : ""}</td>
+
+        <td>
+        ${index === 0 ? `<label class="switch">
+        <input type="checkbox" ${r.active ? "checked" : ""} onchange="toggleRally('${r.id}', ${r.active})">
+        <span class="slider"></span>
+        </label>` : ""}
+        </td>
+
+        <td>${index === 0 ? escapeHtml(r.rate) : ""}</td>
+        <td>${index === 0 ? escapeHtml(r.marchTime ?? "") : ""}</td>
+        <td>${escapeHtml(h.hero)}</td>
+        <td>${escapeHtml(h.need)}</td>
+
+        <td>
+        ${index === 0 ? `
+          <button onclick="startEdit('${r.id}')">更新</button>
+          <button onclick="deleteRally('${r.id}')">削除</button>
+        ` : ""}
+        </td>
+        </tr>
+        `
+      })
+
+      if(editingId === r.id){
+
+        const rate = (r.rate || "").split(".")
+
+        html += `
+        <tr>
+        <td colspan="7">
+          <div style="padding:10px;border:1px solid #ccc;">
+            行軍時間 <input id="edit_marchTime" value="${r.marchTime ?? ""}"><br>
+
+            割合
+            <input id="edit_rate1" value="${rate[0]||""}"> .
+            <input id="edit_rate2" value="${rate[1]||""}"> .
+            <input id="edit_rate3" value="${rate[2]||""}"><br>
+        `
+
+        for(let i=1;i<=4;i++){
+          const h = r.heroes[i-1] || {}
           html += `
-          <tr class="${r.active ? "active-rally" : ""}">
-          <td>${index === 0 ? escapeHtml(r.leaderName) : ""}</td>
-
-          <td>
-          ${index === 0 ? `<label class="switch">
-          <input type="checkbox" ${r.active ? "checked" : ""} onchange="toggleRally('${r.id}', ${r.active})">
-          <span class="slider"></span>
-          </label>` : ""}
-          </td>
-
-          <td>${index === 0 ? escapeHtml(r.rate) : ""}</td>
-          <td>${index === 0 ? escapeHtml(r.marchTime ?? "") : ""}</td>
-          <td>${escapeHtml(h.hero)}</td>
-          <td>${escapeHtml(h.need)}</td>
-
-          <td>
-          ${index === 0 ? `
-            <button onclick="startEdit('${r.id}')">更新</button>
-            <button onclick="deleteRally('${r.id}')">削除</button>
-          ` : ""}
-          </td>
-          </tr>
-          `
-        })
-
-        // ★追加：編集エリア（行下）
-        if(editingId === r.id){
-
-          const rate = (r.rate || "").split(".")
-
-          html += `
-          <tr>
-          <td colspan="7">
-            <div style="padding:10px;border:1px solid #ccc;">
-              行軍時間 <input id="edit_marchTime" value="${r.marchTime ?? ""}"><br>
-
-              割合
-              <input id="edit_rate1" value="${rate[0]||""}"> .
-              <input id="edit_rate2" value="${rate[1]||""}"> .
-              <input id="edit_rate3" value="${rate[2]||""}"><br>
-          `
-
-          for(let i=1;i<=4;i++){
-            const h = r.heroes[i-1] || {}
-            html += `
-              英雄 <select id="edit_hero${i}">${heroOptions(h.hero || "")}</select>
-              人数 <input id="edit_need${i}" value="${h.need||""}"><br>
-            `
-          }
-
-          html += `
-              <button onclick="updateRally('${r.id}')">保存</button>
-              <button onclick="cancelEdit()">キャンセル</button>
-            </div>
-          </td>
-          </tr>
+            英雄 <select id="edit_hero${i}">${heroOptions(h.hero || "")}</select>
+            人数 <input id="edit_need${i}" value="${h.need||""}"><br>
           `
         }
 
-      })
+        html += `
+            <button onclick="updateRally('${r.id}')">保存</button>
+            <button onclick="cancelEdit()">キャンセル</button>
+          </div>
+        </td>
+        </tr>
+        `
+      }
+
+    })
 
     html += `</table>`
   })

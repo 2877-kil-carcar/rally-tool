@@ -156,20 +156,25 @@ function renderPlayers(){
     <th>プレイヤー</th>
     <th>参加</th>
     </tr>
-    `
-
+    `      
     groups[alliance].forEach(p=>{
+
+      const isGorgeous = ["ディスティニー"].includes(p.name)
+
       html += `
-      <tr>
+      <tr class="${isGorgeous ? "destiny-highlight" : ""}">
       <td>
         <input type="checkbox" id="chk_${p.id}">
       </td>
       <td>
-        <input 
-          id="name_${p.id}" 
-          value="${escapeHtml(p.name)}"
-          oninput="onPlayerNameInput('${p.id}')"
-        >
+        <div style="text-align:center;">
+          <input 
+            id="name_${p.id}" 
+            value="${escapeHtml(p.name)}"
+            oninput="onPlayerNameInput('${p.id}')"
+          >
+        </div>
+
         <button 
           id="btn_${p.id}"
           onclick="updatePlayerName('${p.id}')"
