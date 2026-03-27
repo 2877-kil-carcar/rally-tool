@@ -125,7 +125,7 @@ margin:4px 0;
 }
 
 .changed-input{
-  border:2px solid #f59e0b;
+  border:2px solid #f59e0b; /* オレンジ */
   background:#3a2f1a;
 }
 
@@ -145,6 +145,7 @@ margin:4px 0;
   white-space:nowrap;
 }
 
+/* 左列固定 */
 .sticky-col{
   position:sticky;
   left:0;
@@ -152,10 +153,12 @@ margin:4px 0;
   z-index:2;
 }
 
+/* 左上セルだけ最前面 */
 .header-corner{
   z-index:3;
 }
 
+/* ヘッダー固定（任意） */
 .hero-table th{
   position:sticky;
   top:0;
@@ -164,7 +167,7 @@ margin:4px 0;
 }
 
 .active-rally{
-  background:#1f3b2b;
+  background:#1f3b2b; /* 濃い緑 */
 }
 
 .active-rally td{
@@ -172,10 +175,29 @@ margin:4px 0;
 }
 
 /* =========================
-★ Destiny 共通（枠のみ）
+★ Destiny 共通（枠＋発光）
 ========================= */
 .destiny-highlight{
 border: 2px solid gold !important;
+box-shadow:
+0 0 8px gold,
+0 0 16px gold,
+0 0 24px rgba(255,215,0,0.6);
+animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow{
+from{
+box-shadow:
+0 0 6px gold,
+0 0 12px gold;
+}
+to{
+box-shadow:
+0 0 12px gold,
+0 0 24px gold,
+0 0 36px rgba(255,215,0,0.8);
+}
 }
 
 /* =========================
@@ -207,7 +229,7 @@ z-index: 0;
 }
 
 /* =========================
-★ 所持英雄（別アイコン）
+★ 所持英雄（別アイコンに差し替え）
 ========================= */
 .hero-table tr.destiny-highlight td:nth-child(1){
 position: relative;
@@ -225,7 +247,7 @@ transform: translate(-50%, -50%);
 width: 120px;
 height: 120px;
 
-background: url("destiny2.png") no-repeat center;
+background: url("destiny2.png") no-repeat center; /* ★ここ違う */
 background-size: contain;
 
 opacity: 0.4;
@@ -238,19 +260,32 @@ z-index: 0;
 content: none !important;
 }
 
+/* 文字は前面 */
 .destiny-highlight td{
 position: relative;
 z-index: 1;
 }
 
 /* =========================
-★ 集結設定
+★ 集結設定：崩れない安全版
 ========================= */
+
+/* 金枠・金背景 */
 #rally table tr.rally-gorgeous td{
 border-color: gold !important;
 background: rgba(255,215,0,0.10);
 }
 
+/* 発光 */
+#rally table tr.rally-gorgeous{
+box-shadow:
+0 0 8px gold,
+0 0 16px gold,
+0 0 24px rgba(255,215,0,0.6);
+animation: glow 1.5s infinite alternate;
+}
+
+/* アイコンは先頭行に1枚だけ */
 #rally table tr.rally-gorgeous-first td:nth-child(1){
 position: relative;
 overflow: visible;
@@ -276,11 +311,14 @@ position: relative;
 z-index: 1;
 }
 
+/* ★ディスティニーだけ金背景にする */
 #rally table tr.active-rally.rally-gorgeous{
 background: rgba(255,215,0,0.12) !important;
 }
 
-/* OFF時 */
+/* =========================
+★ OFF時は通常に戻す（追加）
+========================= */
 #rally table tr.rally-gorgeous:not(.active-rally){
 box-shadow: none !important;
 animation: none !important;
@@ -288,33 +326,17 @@ animation: none !important;
 
 #rally table tr.rally-gorgeous:not(.active-rally) td{
 background: none !important;
-border-color: #3a3c46 !important;
+border-color: #3a3c46 !important; /* 元の色に戻す */
 }
 
+/* アイコンもOFF時は消す */
 #rally table tr.rally-gorgeous-first:not(.active-rally) td:nth-child(1)::before{
 content: none !important;
 }
 
 /* =========================
-★ PC専用 発光
-@media (hover: hover){
-
-.destiny-highlight{
-box-shadow:
-0 0 8px gold,
-0 0 16px gold,
-0 0 24px rgba(255,215,0,0.6);
-animation: glow 1.5s infinite alternate;
-}
-
-#rally table tr.rally-gorgeous{
-box-shadow:
-0 0 8px gold,
-0 0 16px gold,
-0 0 24px rgba(255,215,0,0.6);
-animation: glow 1.5s infinite alternate;
-}
-
+★ ON時だけ強制適用（保険）
+========================= */
 #rally table tr.active-rally.rally-gorgeous{
 box-shadow:
 0 0 8px gold,
@@ -323,34 +345,46 @@ box-shadow:
 animation: glow 1.5s infinite alternate !important;
 }
 
-@keyframes glow{
-from{
-box-shadow:
-0 0 6px gold,
-0 0 12px gold;
-}
-to{
-box-shadow:
-0 0 12px gold,
-0 0 24px gold,
-0 0 36px rgba(255,215,0,0.8);
-}
+#rally table tr.active-rally.rally-gorgeous td{
+background: rgba(255,215,0,0.12) !important;
+border-color: gold !important;
 }
 
-}
-========================= */
 /* =========================
 ★ スマホ専用 ネオン（最終版）
 ========================= */
 @supports (-webkit-touch-callout: none){
 
 /* ===== destiny（プレイヤー側） ===== */
-/* ★2列目だけに限定 */
+.destiny-highlight td:nth-child(1){
+  position: relative;
+  z-index: 1;
+}
+/* ネオン */
+.destiny-highlight td:nth-child(1)::after{
+  content: "";
+  position: absolute;
+  inset: -2px;
+
+  background: linear-gradient(
+    90deg,
+    rgba(255,215,0,0),
+    rgba(255,215,0,1),
+    rgba(255,215,0,0)
+  );
+
+  filter: blur(8px);
+  opacity: 0.9;
+
+  animation: neon-slide 2.5s linear infinite;
+
+  z-index: 0; /* ← before(アイコン)より下 */
+}
+
 .destiny-highlight td:nth-child(2){
   position: relative;
   z-index: 1;
 }
-
 /* ネオン */
 .destiny-highlight td:nth-child(2)::after{
   content: "";
@@ -372,6 +406,55 @@ box-shadow:
   z-index: 0; /* ← before(アイコン)より下 */
 }
 
+.destiny-highlight td:nth-child(3){
+  position: relative;
+  z-index: 1;
+}
+/* ネオン */
+.destiny-highlight td:nth-child(3)::after{
+  content: "";
+  position: absolute;
+  inset: -2px;
+
+  background: linear-gradient(
+    90deg,
+    rgba(255,215,0,0),
+    rgba(255,215,0,1),
+    rgba(255,215,0,0)
+  );
+
+  filter: blur(8px);
+  opacity: 0.9;
+
+  animation: neon-slide 2.5s linear infinite;
+
+  z-index: 0; /* ← before(アイコン)より下 */
+}
+
+.destiny-highlight td:nth-child(4){
+  position: relative;
+  z-index: 1;
+}
+/* ネオン */
+.destiny-highlight td:nth-child(5)::after{
+  content: "";
+  position: absolute;
+  inset: -2px;
+
+  background: linear-gradient(
+    90deg,
+    rgba(255,215,0,0),
+    rgba(255,215,0,1),
+    rgba(255,215,0,0)
+  );
+
+  filter: blur(8px);
+  opacity: 0.9;
+
+  animation: neon-slide 2.5s linear infinite;
+
+  z-index: 0; /* ← before(アイコン)より下 */
+}
 
 /* ===== rally側 ===== */
 /* ★1列目だけに限定 */
