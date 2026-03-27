@@ -384,8 +384,6 @@ border-color: gold !important;
 
   animation: neon-slide 2.5s linear infinite;
 
-  pointer-events: none;
-
   z-index: 0; /* ← before(アイコン)より下 */
 }
 
