@@ -418,8 +418,8 @@ border-color: gold !important;
 }
 
 @keyframes neon-slide{
-  0%   { transform: translateX(-60%); }
-  100% { transform: translateX(140%); }
+  0%   { transform: translateX(-20%); }
+  100% { transform: translateX(200%); }
 }
 
 }
