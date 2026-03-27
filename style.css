@@ -356,15 +356,22 @@ border-color: gold !important;
 @supports (-webkit-touch-callout: none){
 
 /* ===== destiny（プレイヤー側） ===== */
-.destiny-highlight td{
+.destiny-highlight td:nth-child(1){
   position: relative;
+  overflow: visible;
   z-index: 1;
 }
 /* ネオン */
-.destiny-highlight td::after{
+.destiny-highlight td:nth-child(1)::after{
   content: "";
   position: absolute;
-  inset: -2px;
+  
+  top: -2px;
+  bottom: -2px;
+
+  /* ★横にめちゃくちゃ伸ばす */
+  left: -200%;
+  right: -200%;
 
   background: linear-gradient(
     90deg,
@@ -377,6 +384,8 @@ border-color: gold !important;
   opacity: 0.9;
 
   animation: neon-slide 2.5s linear infinite;
+
+  pointer-events: none;
 
   z-index: 0; /* ← before(アイコン)より下 */
 }
