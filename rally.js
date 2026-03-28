@@ -394,7 +394,7 @@ function renderRally(){
         if(r.active){
           rowClasses.push("active-rally")
         }
-        if(isGorgeous){
+        if(isGorgeous && r.active){
           rowClasses.push("destiny-highlight")   // ★ここ変更
         }
         
