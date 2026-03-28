@@ -404,7 +404,7 @@ border-color: gold !important;
   filter: blur(8px);
   opacity: 0.9;
 
-  animation: neon-slide 2.5s linear infinite;
+  animation: neon-slide 7s linear infinite;
 
   z-index: 0;
 }
