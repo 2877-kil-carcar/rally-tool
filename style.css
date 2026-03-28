@@ -151,6 +151,7 @@ margin:4px 0;
 .rally-table{
   border-collapse: collapse;
   min-width: max-content;
+  width: max-content;
 }
 
 .rally-table th,
