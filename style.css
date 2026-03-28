@@ -190,10 +190,11 @@ margin:4px 0;
 
 /* ★ディスティニー × active のときだけ上書き */
 .active-rally.destiny-highlight{
-  background: #4a3b00;   /* 濃い金系 */
+  background: #4a3b00 !important;   /* 濃い金系 */
 }
 
 .active-rally.destiny-highlight td{
+  background: #4a3b00 !important;
   border-color: gold;
 }
 
