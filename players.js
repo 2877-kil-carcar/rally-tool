@@ -204,6 +204,7 @@ function renderPlayers(){
   document.getElementById("players").innerHTML = html
   initPlayerInputs() 
   afterRender()
+  applyDestinyOverlay()
 }
 
 async function updatePlayerName(id){
@@ -351,6 +352,26 @@ async function bulkChangeAlliance(){
   alert(`${count}件変更しました`)
 }
 
+function applyDestinyOverlay(){
+
+  const overlay = document.getElementById("destiny-global-overlay")
+  if(!overlay) return
+
+  const row = document.querySelector(".destiny-highlight")
+  if(!row){
+    overlay.style.display = "none"
+    return
+  }
+
+  const rect = row.getBoundingClientRect()
+
+  overlay.style.display = "block"
+  overlay.style.top = (window.scrollY + rect.top) + "px"
+  overlay.style.left = (window.scrollX + rect.left) + "px"
+  overlay.style.width = rect.width + "px"
+  overlay.style.height = rect.height + "px"
+}
+
 subscribe("players", renderPlayers)
 subscribe("alliances", renderPlayers)
 renderPlayers()
@@ -361,3 +382,6 @@ window.deletePlayer = deletePlayer
 window.renderPlayers = renderPlayers
 window.copyAllianceCounts = copyAllianceCounts
 window.bulkChangeAlliance = bulkChangeAlliance
+
+window.addEventListener("scroll", applyDestinyOverlay)
+window.addEventListener("resize", applyDestinyOverlay)

@@ -355,22 +355,10 @@ border-color: gold !important;
 ========================= */
 @supports (-webkit-touch-callout: none){
 
-/* ===== destiny（プレイヤー側） ===== */
-.destiny-highlight td:nth-child(2){
-  position: relative;
-  z-index: 1;
-}
-/* ネオン */
-.destiny-highlight td:nth-child(2)::after{
-  content: "";
+#destiny-global-overlay{
   position: absolute;
-  
-  top: -2px;
-  bottom: -2px;
-
-  /* ★横にめちゃくちゃ伸ばす */
-  left: -100%;
-  right: -200%;
+  pointer-events: none;
+  z-index: 999;
 
   background: linear-gradient(
     90deg,
@@ -384,7 +372,7 @@ border-color: gold !important;
 
   animation: neon-slide 2.5s linear infinite;
 
-  z-index: 0; /* ← before(アイコン)より下 */
+  display: none;
 }
 
 /* ===== rally側 ===== */
