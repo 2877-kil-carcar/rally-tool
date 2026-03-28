@@ -382,6 +382,7 @@ window.deletePlayer = deletePlayer
 window.renderPlayers = renderPlayers
 window.copyAllianceCounts = copyAllianceCounts
 window.bulkChangeAlliance = bulkChangeAlliance
+window.applyDestinyOverlay = applyDestinyOverlay
 
 window.addEventListener("scroll", applyDestinyOverlay)
 window.addEventListener("resize", applyDestinyOverlay)
