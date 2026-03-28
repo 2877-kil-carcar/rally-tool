@@ -386,7 +386,7 @@ function renderRally(){
     .forEach(r=>{
 
       const heroes = Array.isArray(r.heroes) ? r.heroes : []
-      const isGorgeous = ["ディスティニー","ボス"].includes(r.leaderName)
+      const isGorgeous = ["ディスティニー"].includes(r.leaderName)
 
       heroes.forEach((h,index)=>{
 
@@ -395,12 +395,9 @@ function renderRally(){
           rowClasses.push("active-rally")
         }
         if(isGorgeous){
-          rowClasses.push("rally-gorgeous")
+          rowClasses.push("destiny-highlight")   // ★ここ変更
         }
-        if(isGorgeous && index === 1){
-          rowClasses.push("rally-gorgeous-first")
-        }
-
+        
         html += `
         <tr class="${rowClasses.join(" ")}">
         <td>${index === 0 ? escapeHtml(r.leaderName) : ""}</td>

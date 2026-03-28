@@ -382,8 +382,7 @@ border-color: gold !important;
   animation: neon-slide 2.5s linear infinite;
 }
 
-/* ===== rally側 ===== */
-/* ★1列目だけに限定 */
+/* ===== rally側 ===== 
 #rally table tr.rally-gorgeous td:nth-child(1){
   position: relative;
   z-index: 1;
@@ -404,10 +403,10 @@ border-color: gold !important;
   filter: blur(8px);
   opacity: 0.9;
 
-  animation: neon-slide 7s linear infinite;
+  animation: neon-slide 2.5s linear infinite;
 
   z-index: 0;
-}
+}*/
 
 @keyframes neon-slide{
   0%   { transform: translateX(-100%); }
