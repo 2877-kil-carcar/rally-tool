@@ -188,6 +188,15 @@ margin:4px 0;
   border-color:#22c55e;
 }
 
+/* ★ディスティニー × active のときだけ上書き */
+.active-rally.destiny-highlight{
+  background: #4a3b00;   /* 濃い金系 */
+}
+
+.active-rally.destiny-highlight td{
+  border-color: gold;
+}
+
 /* =========================
 ★ Destiny 共通（枠＋発光）
 ========================= */
