@@ -145,6 +145,19 @@ margin:4px 0;
   white-space:nowrap;
 }
 
+/* =========================
+★ 集結テーブル（横スクロール対応）
+========================= */
+.rally-table{
+  border-collapse: collapse;
+  min-width: max-content;
+}
+
+.rally-table th,
+.rally-table td{
+  white-space: nowrap;
+}
+
 /* 左列固定 */
 .sticky-col{
   position:sticky;

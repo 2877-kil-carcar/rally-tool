@@ -363,7 +363,8 @@ function renderRally(){
     html += `<h3>${escapeHtml(alliance)}</h3>`
 
     html += `
-    <table>
+    <div class="table-wrap">
+    <table class="rally-table">
     <tr>
     <th>集結主</th>
     <th>使用</th>
@@ -461,7 +462,7 @@ function renderRally(){
 
     })
 
-    html += `</table>`
+    html += `</table></div>`
   })
 
   document.getElementById("rally").innerHTML = html
