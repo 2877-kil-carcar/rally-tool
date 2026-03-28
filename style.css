@@ -354,12 +354,7 @@ border-color: gold !important;
 ★ スマホ専用 ネオン（最終版）
 ========================= */
 @supports (-webkit-touch-callout: none){
-
-#destiny-global-overlay{
-  position: absolute;
-  pointer-events: none;
-  z-index: 999;
-
+.destiny-global-overlay-item{
   background: linear-gradient(
     90deg,
     rgba(255,215,0,0),
@@ -371,8 +366,6 @@ border-color: gold !important;
   opacity: 0.9;
 
   animation: neon-slide 2.5s linear infinite;
-
-  display: none;
 }
 
 /* ===== rally側 ===== */

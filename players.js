@@ -354,17 +354,18 @@ async function bulkChangeAlliance(){
 
 function applyDestinyOverlay(){
 
-  document.querySelectorAll(".destiny-global-overlay-item").forEach(el => el.remove())
+  // 既存削除
+  document.querySelectorAll(".destiny-global-overlay-item")
+    .forEach(el => el.remove())
 
-  const visibleRows = Array.from(document.querySelectorAll(".destiny-highlight"))
-    .filter(row => {
-      const rect = row.getBoundingClientRect()
-      return rect.width > 0 && rect.height > 0
-    })
+  const rows = document.querySelectorAll(".destiny-highlight")
+  if(rows.length === 0) return
 
-  visibleRows.forEach(row => {
+  rows.forEach(row => {
 
     const rect = row.getBoundingClientRect()
+
+    if(rect.width === 0 || rect.height === 0) return
 
     const overlay = document.createElement("div")
     overlay.className = "destiny-global-overlay-item"
@@ -372,6 +373,7 @@ function applyDestinyOverlay(){
     overlay.style.position = "absolute"
     overlay.style.pointerEvents = "none"
     overlay.style.zIndex = "999"
+
     overlay.style.top = (window.scrollY + rect.top) + "px"
     overlay.style.left = (window.scrollX + rect.left) + "px"
     overlay.style.width = rect.width + "px"
