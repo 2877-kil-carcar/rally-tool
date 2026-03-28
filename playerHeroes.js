@@ -107,6 +107,7 @@ function renderPlayerHeroes(){
 
   renderHeroCheckbox()
   afterRender()
+  applyDestinyOverlay()
 }
 
 function changePlayerHeroTarget(playerId){
