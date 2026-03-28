@@ -354,22 +354,31 @@ async function bulkChangeAlliance(){
 
 function applyDestinyOverlay(){
 
-  const overlay = document.getElementById("destiny-global-overlay")
-  if(!overlay) return
+  document.querySelectorAll(".destiny-global-overlay-item").forEach(el => el.remove())
 
-  const row = document.querySelector(".destiny-highlight")
-  if(!row){
-    overlay.style.display = "none"
-    return
-  }
+  const visibleRows = Array.from(document.querySelectorAll(".destiny-highlight"))
+    .filter(row => {
+      const rect = row.getBoundingClientRect()
+      return rect.width > 0 && rect.height > 0
+    })
 
-  const rect = row.getBoundingClientRect()
+  visibleRows.forEach(row => {
 
-  overlay.style.display = "block"
-  overlay.style.top = (window.scrollY + rect.top) + "px"
-  overlay.style.left = (window.scrollX + rect.left) + "px"
-  overlay.style.width = rect.width + "px"
-  overlay.style.height = rect.height + "px"
+    const rect = row.getBoundingClientRect()
+
+    const overlay = document.createElement("div")
+    overlay.className = "destiny-global-overlay-item"
+
+    overlay.style.position = "absolute"
+    overlay.style.pointerEvents = "none"
+    overlay.style.zIndex = "999"
+    overlay.style.top = (window.scrollY + rect.top) + "px"
+    overlay.style.left = (window.scrollX + rect.left) + "px"
+    overlay.style.width = rect.width + "px"
+    overlay.style.height = rect.height + "px"
+
+    document.body.appendChild(overlay)
+  })
 }
 
 subscribe("players", renderPlayers)
