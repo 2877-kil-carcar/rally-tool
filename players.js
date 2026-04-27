@@ -1,3 +1,16 @@
+function groupOptions(selected){
+
+  const groups = getState("groups")
+
+  let html = `<option value="">なし</option>`
+
+  groups.forEach(g=>{
+    html += `<option value="${escapeHtml(g.name)}" ${selected === g.name ? 'selected' : ''}>${escapeHtml(g.name)}</option>`
+  })
+
+  return html
+}
+
 function allianceOptions(){
 
   const alliances = getState("alliances")
@@ -6,6 +19,23 @@ function allianceOptions(){
 
   alliances.forEach(a=>{
     html += `<option value="${escapeHtml(a.name)}">${escapeHtml(a.name)}</option>`
+  })
+
+  return html
+}
+
+function timeOptions(selected){
+
+  const times = []
+  for(let h = 21; h <= 23; h++){
+    times.push(`${String(h).padStart(2,'0')}:00`)
+    times.push(`${String(h).padStart(2,'0')}:30`)
+  }
+  times.push("24:00")
+
+  let html = `<option value="">--</option>`
+  times.forEach(t=>{
+    html += `<option value="${t}" ${selected === t ? 'selected' : ''}>${t}</option>`
   })
 
   return html
@@ -28,9 +58,12 @@ async function addPlayer(){
     return
   }
 
+  let group = document.getElementById("playerGroup").value
+
   await window.db.collection("players").add({
     name: name,
     alliance: alliance,
+    group: group,
     heroes: [],
     active: true,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -39,8 +72,23 @@ async function addPlayer(){
 
 async function togglePlayer(id, current){
 
+  const update = { active: !current }
+  if(current) update.joinTime = ""
+
+  await window.db.collection("players").doc(id).update(update)
+}
+
+async function updatePlayerTime(id, time){
+
   await window.db.collection("players").doc(id).update({
-    active: !current
+    joinTime: time
+  })
+}
+
+async function updatePlayerGroup(id, group){
+
+  await window.db.collection("players").doc(id).update({
+    group: group
   })
 }
 
@@ -78,13 +126,35 @@ function copyAllianceCounts(groups){
     .sort((a,b)=>a.localeCompare(b))
     .forEach(alliance=>{
 
-      const count = groups[alliance].length
-      const name = alliance || "未所属"
+      const activePlayers = groups[alliance].filter(p=>p.active !== false)
+      if(activePlayers.length === 0) return
 
-      text += `${name.toUpperCase()} ${count}名\n`
+      const name = (alliance === "未所属" ? "未所属" : alliance).toUpperCase()
+
+      const timeCounts = {}
+      activePlayers.forEach(p=>{
+        const t = p.joinTime || "未定"
+        timeCounts[t] = (timeCounts[t] || 0) + 1
+      })
+
+      const sortedTimes = Object.keys(timeCounts).sort((a,b)=>{
+        if(a === "未定") return 1
+        if(b === "未定") return -1
+        return a.localeCompare(b)
+      })
+
+      const pad = " ".repeat(name.length + 1)
+
+      sortedTimes.forEach((t, i)=>{
+        if(i === 0){
+          text += `${name} ${t} ${timeCounts[t]}名\n`
+        } else {
+          text += `${pad}${t} ${timeCounts[t]}名\n`
+        }
+      })
     })
 
-  navigator.clipboard.writeText(text)
+  navigator.clipboard.writeText(text.trim())
     .then(()=>{
       alert("コピーしました")
     })
@@ -101,6 +171,10 @@ function renderPlayers(){
   <h2>プレイヤー登録</h2>
 
   <input id="playerName" placeholder="プレイヤー名">
+
+  <select id="playerGroup">
+  ${groupOptions("")}
+  </select>
 
   <select id="playerAlliance">
   ${allianceOptions()}
@@ -154,12 +228,15 @@ function renderPlayers(){
     <tr></th>
     <th></th>
     <th>プレイヤー</th>
+    <th>グループ</th>
     <th>参加</th>
+    <th>参加時間</th>
     </tr>
-    `      
+    `
     groups[alliance].forEach(p=>{
 
       const isGorgeous = ["ディスティニー"].includes(p.name)
+      const isActive = p.active !== false
 
       html += `
       <tr class="${isGorgeous ? "destiny-highlight" : ""}">
@@ -168,14 +245,14 @@ function renderPlayers(){
       </td>
       <td>
         <div style="text-align:center;">
-          <input 
-            id="name_${p.id}" 
+          <input
+            id="name_${p.id}"
             value="${escapeHtml(p.name)}"
             oninput="onPlayerNameInput('${p.id}')"
           >
         </div>
 
-        <button 
+        <button
           id="btn_${p.id}"
           onclick="updatePlayerName('${p.id}')"
           disabled
@@ -184,12 +261,26 @@ function renderPlayers(){
         </button>
       </td>
       <td>
+      <select onchange="updatePlayerGroup('${p.id}', this.value)">
+        ${groupOptions(p.group || "")}
+      </select>
+      </td>
+      <td>
       <label class="switch">
       <input type="checkbox"
-        ${p.active !== false ? "checked" : ""}
-        onchange="togglePlayer('${p.id}', ${p.active !== false})">
+        ${isActive ? "checked" : ""}
+        onchange="togglePlayer('${p.id}', ${isActive})">
       <span class="slider"></span>
       </label>
+      </td>
+      <td>
+      <select
+        id="time_${p.id}"
+        onchange="updatePlayerTime('${p.id}', this.value)"
+        ${!isActive ? "disabled" : ""}
+      >
+        ${timeOptions(p.joinTime || "")}
+      </select>
       </td>
       <td>
       <button onclick="deletePlayer('${p.id}')">削除</button>
@@ -385,10 +476,13 @@ function applyDestinyOverlay(){
 
 subscribe("players", renderPlayers)
 subscribe("alliances", renderPlayers)
+subscribe("groups", renderPlayers)
 renderPlayers()
 
 window.addPlayer = addPlayer
 window.togglePlayer = togglePlayer
+window.updatePlayerTime = updatePlayerTime
+window.updatePlayerGroup = updatePlayerGroup
 window.deletePlayer = deletePlayer
 window.renderPlayers = renderPlayers
 window.copyAllianceCounts = copyAllianceCounts

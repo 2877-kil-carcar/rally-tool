@@ -24,6 +24,20 @@ function assign(){
     playerMap[p.id] = p
   })
 
+  // 現在時刻を30分スロットに切り捨て（21:30未満は21:00固定）
+  const now = new Date()
+  const h = now.getHours()
+  const m = now.getMinutes()
+  const effectiveTime = (h < 21 || (h === 21 && m < 30))
+    ? "21:00"
+    : String(h).padStart(2,'0') + ":" + (m < 30 ? "00" : "30")
+
+  // 参加時間フィルター：未設定は除外、有効スロット以下なら選定対象
+  function isTimeAvailable(p){
+    if(!p.joinTime) return false
+    return effectiveTime >= p.joinTime
+  }
+
   const activeRallies = rallies.filter(r=>{
     if(r.active === false) return false
 
@@ -46,30 +60,46 @@ function assign(){
     if(!leader) return
 
     const rallyAlliance = leader.alliance || ""
+    const rallyGroup = leader.group || ""
     const marchTime = r.marchTime || 0
 
     ;(Array.isArray(r.heroes) ? r.heroes : []).forEach(h=>{
 
       let count = Number(h.need) || 0
 
-      let candidates = players.filter(p=>
-
+      // 共通フィルター（時間・英雄・グループ）
+      const baseFilter = p=>
         p.active !== false &&
         p.id !== r.leaderId &&
         !leaderIds.has(p.id) &&
         !usedPlayerIds.has(p.id) &&
         Array.isArray(p.heroes) &&
         p.heroes.includes(h.hero) &&
+        isTimeAvailable(p) &&
+        (p.group || "") === rallyGroup
+
+      // 第一優先：同一同盟
+      let primary = players.filter(p=>
+        baseFilter(p) &&
         (p.alliance || "") === rallyAlliance
+      )
+
+      // 補欠：同一グループ内の他同盟（同盟一致者を除く）
+      const primaryIds = new Set(primary.map(p=>p.id))
+      let fallback = players.filter(p=>
+        baseFilter(p) &&
+        !primaryIds.has(p.id)
       )
 
       const isRandom = document.getElementById("randomAssign")?.checked
 
-      let assignCandidates = [...candidates]
-
       if(isRandom){
-        assignCandidates = shuffle(assignCandidates)
+        primary = shuffle(primary)
+        fallback = shuffle(fallback)
       }
+
+      // 同盟優先→グループ補欠の順で結合
+      const assignCandidates = [...primary, ...fallback]
 
       assignCandidates.forEach(p=>{
 
