@@ -1,5 +1,5 @@
 let countupState = {
-  alliance: "",
+  group: "",
   rows: []
 }
 
@@ -11,34 +11,33 @@ function renderCountup(){
 
   const players = getState("players")
   const rallies = getState("rallies")
-
-  const alliances = [...new Set(players.map(p=>p.alliance || "未所属"))].sort()
+  const groups = getState("groups")
 
   let html = `
   <h2>カウントアップ</h2>
 
-  同盟
-  <select id="countupAlliance" onchange="changeAlliance(this.value)">
+  グループ
+  <select id="countupGroup" onchange="changeGroup(this.value)">
   <option value="">選択してください</option>
   `
 
-  alliances.forEach(a=>{
-    const sel = a === countupState.alliance ? "selected" : ""
-    html += `<option ${sel}>${escapeHtml(a)}</option>`
+  groups.forEach(g=>{
+    const sel = g.name === countupState.group ? "selected" : ""
+    html += `<option value="${escapeHtml(g.name)}" ${sel}>${escapeHtml(g.name)}</option>`
   })
 
   html += `</select>`
 
   html += `<button onclick="addCountupRow()">行追加</button>`
 
-  // active集結主（同盟絞り込み）
+  // active集結主（グループ絞り込み）
   const activeLeaders = rallies
     .filter(r=>r.active)
     .map(r=>{
       const p = players.find(p=>p.id === r.leaderId)
-      return p ? { id:p.id, name:p.name, alliance:p.alliance||"" } : null
+      return p ? { id:p.id, name:p.name, alliance:p.alliance||"", group:p.group||"" } : null
     })
-    .filter(x=>x && x.alliance === countupState.alliance)
+    .filter(x=>x && x.group === countupState.group)
 
   html += `<table>
   <tr>
@@ -88,8 +87,8 @@ function renderCountup(){
 
 // --- 操作系 ---
 
-function changeAlliance(val){
-  countupState.alliance = val
+function changeGroup(val){
+  countupState.group = val
   countupState.rows = []
   renderCountup()
 }
