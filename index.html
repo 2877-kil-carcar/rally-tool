@@ -9,26 +9,18 @@
 
 <body>
 
-<div id="loginModal" style="
-position:fixed;top:0;left:0;width:100%;height:100%;
-background:rgba(0,0,0,0.8);
-display:flex;align-items:center;justify-content:center;
-z-index:9999;
-">
-
-<div style="background:#2b2d36;padding:20px;border-radius:8px;text-align:center">
-
-<h2>管理者ですか？</h2>
-
-<button onclick="selectRole(true)">YES</button>
-<button onclick="selectRole(false)">NO</button>
-
-<div id="adminLogin" style="display:none;margin-top:10px;">
-<input type="password" id="adminPass" placeholder="パスワード">
-<button onclick="loginAdmin()">ログイン</button>
-</div>
-
-</div>
+<!-- ログインポップアップ -->
+<div id="loginOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;" onclick="hideLoginPopup()"></div>
+<div id="loginPopup" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#2b2d36;padding:24px 28px;border-radius:8px;z-index:9999;text-align:center;min-width:240px;">
+  <h3 id="loginPopupTitle" style="margin-bottom:14px;"></h3>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+    <input id="loginUsername" placeholder="ユーザー名" style="width:100%;box-sizing:border-box;">
+    <input type="password" id="loginPassword" placeholder="パスワード" style="width:100%;box-sizing:border-box;">
+  </div>
+  <div style="display:flex;gap:8px;justify-content:center;">
+    <button id="loginConfirmBtn">確定</button>
+    <button onclick="hideLoginPopup()">キャンセル</button>
+  </div>
 </div>
 
 <h1 style="display:flex;align-items:center;gap:10px;">
@@ -44,10 +36,15 @@ z-index:9999;
   ">
     Product By かるろ
     <img src="icon.png" style="width:36px;height:36px;border-radius:50%;">
-    
   </span>
 
 </h1>
+
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+  <button onclick="showLoginPopup('register')">管理者申請</button>
+  <button onclick="showLoginPopup('admin')">管理者ログイン</button>
+  <span id="currentUserLabel" style="font-size:13px;color:#aaa;"></span>
+</div>
 <div class="tabs">
 <button class="tab-btn" onclick="showTab('heroes')">英雄</button>
 <button class="tab-btn" onclick="showTab('groups')">グループ</button>
@@ -57,12 +54,16 @@ z-index:9999;
 <button class="tab-btn" onclick="showTab('rally')">集結</button>
 <button class="tab-btn" onclick="showTab('result')">結果</button>
 <button class="tab-btn" onclick="showTab('countupTab')">カウントアップ</button>
+<button class="tab-btn" id="userMgmtTabBtn" onclick="showTab('userMgmt')" style="display:none;">ユーザー管理</button>
+<button class="tab-btn" id="logTabBtn" onclick="showTab('logTab')" style="display:none;">ログ</button>
 </div>
 
 <div id="heroes" class="tab"></div>
 <div id="groups" class="tab"></div>
 <div id="players" class="tab"></div>
 <div id="alliances" class="tab"></div>
+<div id="userMgmt" class="tab"></div>
+<div id="logTab" class="tab"></div>
 <div id="playerHeroes" class="tab"></div>
 <div id="rally" class="tab"></div>
 
@@ -114,6 +115,8 @@ function showTab(tabId){
 
 <script src="storage.js"></script>
 <script src="auth.js"></script>
+<script src="users.js"></script>
+<script src="log.js"></script>
 <script src="heroes.js"></script>
 <script src="groups.js"></script>
 <script src="players.js"></script>
@@ -213,7 +216,8 @@ function startRealtimeSync(){
           group: data.group || "",
           heroes: Array.isArray(data.heroes) ? data.heroes : [],
           active: data.active !== false,
-          joinTime: data.joinTime || ""
+          joinTime: data.joinTime || "",
+          priority: data.priority === true
         })
       })
       list.sort((a,b)=>{
@@ -255,6 +259,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   .then(()=>{
     console.log("Firebase接続OK")
     startRealtimeSync()
+    cleanOldLogs()
   })
   .catch(e=>{
     console.error("Firebaseエラー", e)

@@ -71,9 +71,9 @@ function renderHeroes(){
   let html = `
   <h2>英雄登録</h2>
 
-  <input id="heroName" placeholder="英雄名">
+  <input id="heroName" placeholder="英雄名" oninput="checkAddInput('heroName','addHeroBtn')">
 
-  <button onclick="addHero(document.getElementById('heroName').value)">追加</button>
+  <button id="addHeroBtn" onclick="addHero(document.getElementById('heroName').value)" disabled>追加</button>
 
   <table>
   <tr>

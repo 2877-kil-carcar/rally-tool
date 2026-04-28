@@ -101,9 +101,9 @@ function renderGroups(){
   let html = `
   <h2>グループ登録</h2>
 
-  <input id="groupName" placeholder="グループ名">
+  <input id="groupName" placeholder="グループ名" oninput="checkAddInput('groupName','addGroupBtn')">
 
-  <button onclick="addGroup(document.getElementById('groupName').value)">追加</button>
+  <button id="addGroupBtn" onclick="addGroup(document.getElementById('groupName').value)" disabled>追加</button>
 
   <table>
   <tr>

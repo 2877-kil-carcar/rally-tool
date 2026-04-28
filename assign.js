@@ -78,28 +78,27 @@ function assign(){
         isTimeAvailable(p) &&
         (p.group || "") === rallyGroup
 
-      // 第一優先：同一同盟
-      let primary = players.filter(p=>
-        baseFilter(p) &&
-        (p.alliance || "") === rallyAlliance
-      )
+      const sameAlliance = p=> (p.alliance || "") === rallyAlliance
 
-      // 補欠：同一グループ内の他同盟（同盟一致者を除く）
-      const primaryIds = new Set(primary.map(p=>p.id))
-      let fallback = players.filter(p=>
-        baseFilter(p) &&
-        !primaryIds.has(p.id)
-      )
+      // ①同一グループ × 同一同盟 × 参加時間OK × 優先あり
+      let tier1 = players.filter(p=> baseFilter(p) && sameAlliance(p) && p.priority === true)
+      // ②同一グループ × 同一同盟 × 参加時間OK × 優先なし
+      let tier2 = players.filter(p=> baseFilter(p) && sameAlliance(p) && !p.priority)
+      // ③同一グループ × 他同盟 × 参加時間OK × 優先あり
+      let tier3 = players.filter(p=> baseFilter(p) && !sameAlliance(p) && p.priority === true)
+      // ④同一グループ × 他同盟 × 参加時間OK × 優先なし
+      let tier4 = players.filter(p=> baseFilter(p) && !sameAlliance(p) && !p.priority)
 
       const isRandom = document.getElementById("randomAssign")?.checked
 
       if(isRandom){
-        primary = shuffle(primary)
-        fallback = shuffle(fallback)
+        tier1 = shuffle(tier1)
+        tier2 = shuffle(tier2)
+        tier3 = shuffle(tier3)
+        tier4 = shuffle(tier4)
       }
 
-      // 同盟優先→グループ補欠の順で結合
-      const assignCandidates = [...primary, ...fallback]
+      const assignCandidates = [...tier1, ...tier2, ...tier3, ...tier4]
 
       assignCandidates.forEach(p=>{
 

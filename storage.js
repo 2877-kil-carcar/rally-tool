@@ -64,10 +64,34 @@ function escapeHtml(value){
     .replace(/'/g, "&#39;")
 }
 
+// 追加ボタンの入力チェック（管理者のみ有効化）
+function checkAddInput(inputId, btnId){
+  const input = document.getElementById(inputId)
+  const btn   = document.getElementById(btnId)
+  if(!input || !btn) return
+  if(!window.currentUser?.isAdmin) return
+  btn.disabled = !input.value.trim()
+}
+
 function afterRender(){
   if(typeof applyPermission === "function"){
     applyPermission()
   }
+  if(typeof updateBulkChangeBtn === "function"){
+    updateBulkChangeBtn()
+  }
+  // 追加ボタン：入力なければ無効
+  ;[
+    ["heroName",    "addHeroBtn"],
+    ["groupName",   "addGroupBtn"],
+    ["allianceName","addAllianceBtn"]
+  ].forEach(([inputId, btnId])=>{
+    const input = document.getElementById(inputId)
+    const btn   = document.getElementById(btnId)
+    if(!input || !btn) return
+    if(!window.currentUser?.isAdmin) return
+    btn.disabled = !input.value.trim()
+  })
 }
 
 window.getState = getState
@@ -75,3 +99,4 @@ window.setState = setState
 window.subscribe = subscribe
 window.escapeHtml = escapeHtml
 window.afterRender = afterRender
+window.checkAddInput = checkAddInput

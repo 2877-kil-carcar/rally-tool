@@ -129,6 +129,12 @@ async function addRally(){
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   })
 
+  // 登録成功時のみログ出力
+  if(typeof saveLog === "function"){
+    const detail = `${leader.name} / ${rate} / 行軍${marchTime}秒`
+    saveLog("集結", "登録", detail)
+  }
+
   clearRallyForm()
 }
 
@@ -194,11 +200,24 @@ async function updateRally(id){
     return
   }
 
+  // 変更前の状態を取得
+  const rallies = getState("rallies")
+  const players = getState("players")
+  const before  = rallies.find(r => r.id === id)
+  const leader  = before ? players.find(p => p.id === before.leaderId) : null
+  const leaderName = leader ? leader.name : "不明"
+
   await window.db.collection("rallies").doc(id).update({
     rate,
     marchTime,
     heroes
   })
+
+  // 保存成功後に変更前後をログ出力
+  if(typeof saveLog === "function" && before){
+    saveLog("集結", "保存（変更前）", `${leaderName} / ${before.rate} / 行軍${before.marchTime}秒`)
+    saveLog("集結", "保存（変更後）", `${leaderName} / ${rate} / 行軍${marchTime}秒`)
+  }
 
   editingId = null
   renderRally()

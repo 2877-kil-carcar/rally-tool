@@ -92,6 +92,13 @@ async function updatePlayerGroup(id, group){
   })
 }
 
+async function updatePlayerPriority(id, checked){
+
+  await window.db.collection("players").doc(id).update({
+    priority: checked
+  })
+}
+
 async function deletePlayer(id){
 
   const players = getState("players")
@@ -170,7 +177,7 @@ function renderPlayers(){
   let html = `
   <h2>プレイヤー登録</h2>
 
-  <input id="playerName" placeholder="プレイヤー名">
+  <input id="playerName" placeholder="プレイヤー名" oninput="checkAddInput('playerName','addPlayerBtn')">
 
   <select id="playerGroup">
   ${groupOptions("")}
@@ -180,7 +187,7 @@ function renderPlayers(){
   ${allianceOptions()}
   </select>
 
-  <button onclick="addPlayer()">追加</button>
+  <button id="addPlayerBtn" onclick="addPlayer()" disabled>追加</button>
   <button onclick="copyAllianceCounts(window._allianceGroups)">同盟参加人数コピー</button>
   
   <hr>
@@ -225,12 +232,13 @@ function renderPlayers(){
     html += `
     <table>
     <tr>
-    <tr></th>
-    <th></th>
+    <th>一括変更</th>
     <th>プレイヤー</th>
     <th>グループ</th>
     <th>参加</th>
     <th>参加時間</th>
+    <th>優先</th>
+    <th></th>
     </tr>
     `
     groups[alliance].forEach(p=>{
@@ -241,7 +249,7 @@ function renderPlayers(){
       html += `
       <tr class="${isGorgeous ? "destiny-highlight" : ""}">
       <td>
-        <input type="checkbox" id="chk_${p.id}">
+        <input type="checkbox" id="chk_${p.id}" onchange="updateBulkChangeBtn()">
       </td>
       <td>
         <div style="text-align:center;">
@@ -281,6 +289,14 @@ function renderPlayers(){
       >
         ${timeOptions(p.joinTime || "")}
       </select>
+      </td>
+      <td>
+      <label class="switch">
+      <input type="checkbox"
+        ${p.priority ? "checked" : ""}
+        onchange="updatePlayerPriority('${p.id}', this.checked)">
+      <span class="slider"></span>
+      </label>
       </td>
       <td>
       <button onclick="deletePlayer('${p.id}')">削除</button>
@@ -382,6 +398,20 @@ window.addEventListener("beforeunload", function (e){
   e.returnValue = ""
 })
 
+function updateBulkChangeBtn(){
+
+  const btn = document.querySelector("button[onclick='bulkChangeAlliance()']")
+  if(!btn) return
+
+  // 管理者以外は触らない（applyPermission が制御）
+  if(!window.currentUser?.isAdmin) return
+
+  const anyChecked = Array.from(document.querySelectorAll("input[id^='chk_']"))
+    .some(chk => chk.checked)
+
+  btn.disabled = !anyChecked
+}
+
 function initPlayerInputs(){
 
   const inputs = document.querySelectorAll("input[id^='name_']")
@@ -417,6 +447,7 @@ async function bulkChangeAlliance(){
   const batch = window.db.batch()
 
   let count = 0
+  const targets = []
 
   players.forEach(p=>{
 
@@ -429,6 +460,7 @@ async function bulkChangeAlliance(){
         { alliance: alliance }
       )
 
+      targets.push(p)
       count++
     }
   })
@@ -439,6 +471,13 @@ async function bulkChangeAlliance(){
   }
 
   await batch.commit()
+
+  // 対象プレイヤーごとにログ出力
+  if(typeof saveLog === "function"){
+    targets.forEach(p=>{
+      saveLog("プレイヤー", "一括変更", `${p.name}：${p.alliance || "未所属"} → ${alliance || "未所属"}`)
+    })
+  }
 
   alert(`${count}件変更しました`)
 }
@@ -479,10 +518,12 @@ subscribe("alliances", renderPlayers)
 subscribe("groups", renderPlayers)
 renderPlayers()
 
+window.updateBulkChangeBtn = updateBulkChangeBtn
 window.addPlayer = addPlayer
 window.togglePlayer = togglePlayer
 window.updatePlayerTime = updatePlayerTime
 window.updatePlayerGroup = updatePlayerGroup
+window.updatePlayerPriority = updatePlayerPriority
 window.deletePlayer = deletePlayer
 window.renderPlayers = renderPlayers
 window.copyAllianceCounts = copyAllianceCounts

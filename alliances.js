@@ -116,9 +116,9 @@ function renderAlliances(){
   let html = `
   <h2>同盟登録</h2>
 
-  <input id="allianceName" placeholder="同盟名">
+  <input id="allianceName" placeholder="同盟名" oninput="checkAddInput('allianceName','addAllianceBtn')">
 
-  <button onclick="addAlliance(document.getElementById('allianceName').value)">追加</button>
+  <button id="addAllianceBtn" onclick="addAlliance(document.getElementById('allianceName').value)" disabled>追加</button>
 
   <table>
   <tr>
