@@ -268,7 +268,6 @@ function copyAllianceT11Counts(groups){
 function renderPlayers(){
 
   const players = getState("players")
-  const isAdmin = window.currentUser?.isAdmin === true
 
   let html = `
   <h2>プレイヤー登録</h2>
@@ -400,14 +399,14 @@ function renderPlayers(){
       </label>
       </td>
       <td>
-      <select onchange="updatePlayerFC('${p.id}', this.value)" ${!isAdmin?"disabled":""}>
+      <select onchange="updatePlayerFC('${p.id}', this.value)">
         ${fcOptions(p.fc || "")}
       </select>
       </td>
       <td>
-      <label><input type="checkbox" ${(p.t11||[]).includes("盾")?"checked":""} onchange="updatePlayerT11('${p.id}','盾',this.checked)" ${!isAdmin?"disabled":""}>T11盾</label>
-      <label><input type="checkbox" ${(p.t11||[]).includes("槍")?"checked":""} onchange="updatePlayerT11('${p.id}','槍',this.checked)" ${!isAdmin?"disabled":""}>T11槍</label>
-      <label><input type="checkbox" ${(p.t11||[]).includes("弓")?"checked":""} onchange="updatePlayerT11('${p.id}','弓',this.checked)" ${!isAdmin?"disabled":""}>T11弓</label>
+      <label><input type="checkbox" ${(p.t11||[]).includes("盾")?"checked":""} onchange="updatePlayerT11('${p.id}','盾',this.checked)">T11盾</label>
+      <label><input type="checkbox" ${(p.t11||[]).includes("槍")?"checked":""} onchange="updatePlayerT11('${p.id}','槍',this.checked)">T11槍</label>
+      <label><input type="checkbox" ${(p.t11||[]).includes("弓")?"checked":""} onchange="updatePlayerT11('${p.id}','弓',this.checked)">T11弓</label>
       </td>
       <td>
       <button onclick="deletePlayer('${p.id}')">削除</button>
