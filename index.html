@@ -217,7 +217,9 @@ function startRealtimeSync(){
           heroes: Array.isArray(data.heroes) ? data.heroes : [],
           active: data.active !== false,
           joinTime: data.joinTime || "",
-          priority: data.priority === true
+          priority: data.priority === true,
+          fc: data.fc || "",
+          t11: Array.isArray(data.t11) ? data.t11 : []
         })
       })
       list.sort((a,b)=>{

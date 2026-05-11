@@ -1,3 +1,16 @@
+function fcOptions(selected){
+
+  const fcs = ["FC10","FC9","FC8","FC7","FC6","FC5","FC4","FC3","FC2","FC1以下"]
+
+  let html = `<option value="">--</option>`
+
+  fcs.forEach(fc=>{
+    html += `<option value="${fc}" ${selected===fc?"selected":""}>${fc}</option>`
+  })
+
+  return html
+}
+
 function groupOptions(selected){
 
   const groups = getState("groups")
@@ -99,6 +112,29 @@ async function updatePlayerPriority(id, checked){
   })
 }
 
+async function updatePlayerFC(id, fc){
+
+  await window.db.collection("players").doc(id).update({ fc })
+}
+
+async function updatePlayerT11(id, type, checked){
+
+  const players = getState("players")
+  const player = players.find(p => p.id === id)
+  if(!player) return
+
+  const t11 = Array.isArray(player.t11) ? [...player.t11] : []
+
+  if(checked){
+    if(!t11.includes(type)) t11.push(type)
+  } else {
+    const idx = t11.indexOf(type)
+    if(idx !== -1) t11.splice(idx, 1)
+  }
+
+  await window.db.collection("players").doc(id).update({ t11 })
+}
+
 async function deletePlayer(id){
 
   const players = getState("players")
@@ -150,14 +186,9 @@ function copyAllianceCounts(groups){
         return a.localeCompare(b)
       })
 
-      const pad = " ".repeat(name.length + 1)
-
-      sortedTimes.forEach((t, i)=>{
-        if(i === 0){
-          text += `${name} ${t} ${timeCounts[t]}名\n`
-        } else {
-          text += `${pad}${t} ${timeCounts[t]}名\n`
-        }
+      text += `${name}\n`
+      sortedTimes.forEach(t=>{
+        text += `${t} ${timeCounts[t]}名\n`
       })
     })
 
@@ -168,6 +199,70 @@ function copyAllianceCounts(groups){
     .catch(()=>{
       alert("コピー失敗")
     })
+}
+
+// ★追加：同盟参加FC数コピー
+function copyAllianceFcCounts(groups){
+
+  const FC_ORDER = ["FC10","FC9","FC8","FC7","FC6","FC5","FC4","FC3","FC2","FC1以下"]
+
+  let text = ""
+
+  Object.keys(groups)
+    .sort((a,b)=>a.localeCompare(b))
+    .forEach(alliance=>{
+
+      const activePlayers = groups[alliance].filter(p=>p.active !== false)
+      if(activePlayers.length === 0) return
+
+      const fcCounts = {}
+      activePlayers.forEach(p=>{
+        if(p.fc) fcCounts[p.fc] = (fcCounts[p.fc] || 0) + 1
+      })
+
+      if(Object.keys(fcCounts).length === 0) return
+
+      const name = (alliance === "未所属" ? "未所属" : alliance).toUpperCase()
+      text += `${name}\n`
+
+      FC_ORDER.forEach(fc=>{
+        if(fcCounts[fc]) text += `${fc} ${fcCounts[fc]}名\n`
+      })
+    })
+
+  navigator.clipboard.writeText(text.trim())
+    .then(()=>alert("コピーしました"))
+    .catch(()=>alert("コピー失敗"))
+}
+
+// ★追加：同盟参加T11保有数コピー
+function copyAllianceT11Counts(groups){
+
+  const T11_TYPES = ["T11盾","T11槍","T11弓"]
+
+  let text = ""
+
+  Object.keys(groups)
+    .sort((a,b)=>a.localeCompare(b))
+    .forEach(alliance=>{
+
+      const activePlayers = groups[alliance].filter(p=>p.active !== false)
+      if(activePlayers.length === 0) return
+
+      const name = (alliance === "未所属" ? "未所属" : alliance).toUpperCase()
+      text += `${name}\n`
+
+      T11_TYPES.forEach(type=>{
+        // Firestore保存値は "盾"/"槍"/"弓"、表示ラベルは "T11盾"等なので末尾1文字で照合
+        const key = type.slice(-1)
+        const count = activePlayers.filter(p=>Array.isArray(p.t11)&&p.t11.includes(key)).length
+        text += `${type} ${count}名\n`
+      })
+    })
+
+  navigator.clipboard.writeText(text.trim())
+    .then(()=>alert("コピーしました"))
+    .catch(()=>alert("コピー失敗"))
 }
 
 function renderPlayers(){
@@ -189,6 +284,8 @@ function renderPlayers(){
 
   <button id="addPlayerBtn" onclick="addPlayer()" disabled>追加</button>
   <button onclick="copyAllianceCounts(window._allianceGroups)">同盟参加人数コピー</button>
+  <button onclick="copyAllianceFcCounts(window._allianceGroups)">同盟参加FC数コピー</button>
+  <button onclick="copyAllianceT11Counts(window._allianceGroups)">同盟参加T11保有数コピー</button>
   
   <hr>
 
@@ -230,7 +327,8 @@ function renderPlayers(){
     html += `<h3>${escapeHtml(alliance)}　計${count}人</h3>`
 
     html += `
-    <table>
+    <div class="table-wrap">
+    <table style="min-width:max-content;">
     <tr>
     <th>一括変更</th>
     <th>プレイヤー</th>
@@ -238,6 +336,8 @@ function renderPlayers(){
     <th>参加</th>
     <th>参加時間</th>
     <th>優先</th>
+    <th>FC</th>
+    <th>T11保有</th>
     <th></th>
     </tr>
     `
@@ -299,13 +399,23 @@ function renderPlayers(){
       </label>
       </td>
       <td>
+      <select onchange="updatePlayerFC('${p.id}', this.value)">
+        ${fcOptions(p.fc || "")}
+      </select>
+      </td>
+      <td>
+      <label><input type="checkbox" ${(p.t11||[]).includes("盾")?"checked":""} onchange="updatePlayerT11('${p.id}','盾',this.checked)">T11盾</label>
+      <label><input type="checkbox" ${(p.t11||[]).includes("槍")?"checked":""} onchange="updatePlayerT11('${p.id}','槍',this.checked)">T11槍</label>
+      <label><input type="checkbox" ${(p.t11||[]).includes("弓")?"checked":""} onchange="updatePlayerT11('${p.id}','弓',this.checked)">T11弓</label>
+      </td>
+      <td>
       <button onclick="deletePlayer('${p.id}')">削除</button>
       </td>
       </tr>
       `
     })
 
-    html += `</table>`
+    html += `</table></div>`
   })
 
   document.getElementById("players").innerHTML = html
@@ -482,34 +592,45 @@ async function bulkChangeAlliance(){
   alert(`${count}件変更しました`)
 }
 
+// ループ防止フラグ
+let _overlayScheduled = false
+
 function applyDestinyOverlay(){
 
-  // 既存削除
-  document.querySelectorAll(".destiny-global-overlay-item")
-    .forEach(el => el.remove())
+  // 既にスケジュール済みなら二重実行しない（スマホ resize/scroll ループ防止）
+  if(_overlayScheduled) return
+  _overlayScheduled = true
 
-  const rows = document.querySelectorAll(".destiny-highlight")
-  if(rows.length === 0) return
+  requestAnimationFrame(()=>{
+    _overlayScheduled = false
 
-  rows.forEach(row => {
+    // 既存削除
+    document.querySelectorAll(".destiny-global-overlay-item")
+      .forEach(el => el.remove())
 
-    const rect = row.getBoundingClientRect()
+    const rows = document.querySelectorAll(".destiny-highlight")
+    if(rows.length === 0) return
 
-    if(rect.width === 0 || rect.height === 0) return
+    rows.forEach(row => {
 
-    const overlay = document.createElement("div")
-    overlay.className = "destiny-global-overlay-item"
+      const rect = row.getBoundingClientRect()
 
-    overlay.style.position = "absolute"
-    overlay.style.pointerEvents = "none"
-    overlay.style.zIndex = "999"
+      if(rect.width === 0 || rect.height === 0) return
 
-    overlay.style.top = (window.scrollY + rect.top) + "px"
-    overlay.style.left = (window.scrollX + rect.left) + "px"
-    overlay.style.width = rect.width + "px"
-    overlay.style.height = rect.height + "px"
+      const overlay = document.createElement("div")
+      overlay.className = "destiny-global-overlay-item"
 
-    document.body.appendChild(overlay)
+      overlay.style.position = "absolute"
+      overlay.style.pointerEvents = "none"
+      overlay.style.zIndex = "999"
+
+      overlay.style.top = (window.scrollY + rect.top) + "px"
+      overlay.style.left = (window.scrollX + rect.left) + "px"
+      overlay.style.width = rect.width + "px"
+      overlay.style.height = rect.height + "px"
+
+      document.body.appendChild(overlay)
+    })
   })
 }
 
@@ -524,9 +645,13 @@ window.togglePlayer = togglePlayer
 window.updatePlayerTime = updatePlayerTime
 window.updatePlayerGroup = updatePlayerGroup
 window.updatePlayerPriority = updatePlayerPriority
+window.updatePlayerFC = updatePlayerFC
+window.updatePlayerT11 = updatePlayerT11
 window.deletePlayer = deletePlayer
 window.renderPlayers = renderPlayers
 window.copyAllianceCounts = copyAllianceCounts
+window.copyAllianceFcCounts = copyAllianceFcCounts
+window.copyAllianceT11Counts = copyAllianceT11Counts
 window.bulkChangeAlliance = bulkChangeAlliance
 window.applyDestinyOverlay = applyDestinyOverlay
 

@@ -207,7 +207,7 @@ window.ADMIN_ONCLICK_FNS = [
   "addAlliance", "renameAlliance", "deleteAlliance",
   // プレイヤー
   "addPlayer", "bulkChangeAlliance", "updatePlayerName", "deletePlayer",
-  "updatePlayerGroup", "updatePlayerPriority",
+  "updatePlayerGroup", "updatePlayerPriority", "updatePlayerFC", "updatePlayerT11",
   // 集結
   "addRally", "startEdit", "updateRally", "deleteRally", "toggleRally"
 ]
