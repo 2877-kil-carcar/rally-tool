@@ -597,16 +597,24 @@ let _overlayScheduled = false
 
 function applyDestinyOverlay(){
 
-  // 既にスケジュール済みなら二重実行しない（スマホ resize/scroll ループ防止）
   if(_overlayScheduled) return
   _overlayScheduled = true
 
   requestAnimationFrame(()=>{
     _overlayScheduled = false
 
-    // 既存削除
-    document.querySelectorAll(".destiny-global-overlay-item")
-      .forEach(el => el.remove())
+    // ★ index.html の #destiny-global-overlay を fixed コンテナとして使用
+    // position:fixed + overflow:hidden にすることで neon-slide アニメーションが
+    // 画面外に出てもドキュメント幅が広がらず、iOS ズームループが発生しない
+    const container = document.getElementById("destiny-global-overlay")
+    if(!container) return
+
+    container.style.cssText =
+      "position:fixed;top:0;left:0;width:100%;height:100%;" +
+      "pointer-events:none;overflow:hidden;z-index:999;"
+
+    // 既存オーバーレイ削除
+    container.innerHTML = ""
 
     const rows = document.querySelectorAll(".destiny-highlight")
     if(rows.length === 0) return
@@ -614,22 +622,18 @@ function applyDestinyOverlay(){
     rows.forEach(row => {
 
       const rect = row.getBoundingClientRect()
-
       if(rect.width === 0 || rect.height === 0) return
 
       const overlay = document.createElement("div")
       overlay.className = "destiny-global-overlay-item"
 
-      overlay.style.position = "absolute"
-      overlay.style.pointerEvents = "none"
-      overlay.style.zIndex = "999"
+      // fixed コンテナ内なので viewport 相対座標（scrollY 不要）
+      overlay.style.cssText =
+        `position:absolute;pointer-events:none;` +
+        `top:${rect.top}px;left:${rect.left}px;` +
+        `width:${rect.width}px;height:${rect.height}px;`
 
-      overlay.style.top = (window.scrollY + rect.top) + "px"
-      overlay.style.left = (window.scrollX + rect.left) + "px"
-      overlay.style.width = rect.width + "px"
-      overlay.style.height = rect.height + "px"
-
-      document.body.appendChild(overlay)
+      container.appendChild(overlay)
     })
   })
 }

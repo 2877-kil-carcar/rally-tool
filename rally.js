@@ -484,10 +484,6 @@ function renderRally(){
   document.getElementById("rally").innerHTML = html
 
   afterRender()
-
-  setTimeout(()=>{
-    window.dispatchEvent(new Event('resize'))
-  },0)
 }
 
 subscribe("players", renderRally)
