@@ -1,6 +1,6 @@
 function fcOptions(selected){
 
-  const fcs = ["FC10","FC9","FC8","FC7","FC6","FC5","FC4","FC3","FC2","FC1以下"]
+  const fcs = ["FC10","FC9","FC8","FC7","FC6","FC5","FC4","FC3","FC2","FC1","FC未満"]
 
   let html = `<option value="">--</option>`
 
@@ -204,7 +204,7 @@ function copyAllianceCounts(groups){
 // ★追加：同盟参加FC数コピー
 function copyAllianceFcCounts(groups){
 
-  const FC_ORDER = ["FC10","FC9","FC8","FC7","FC6","FC5","FC4","FC3","FC2","FC1以下"]
+  const FC_ORDER = ["FC10","FC9","FC8","FC7","FC6","FC5","FC4","FC3","FC2","FC1","FC未満"]
 
   let text = ""
 
@@ -268,6 +268,7 @@ function copyAllianceT11Counts(groups){
 function renderPlayers(){
 
   const players = getState("players")
+  const isAdmin = window.currentUser?.isAdmin === true
 
   let html = `
   <h2>プレイヤー登録</h2>
@@ -399,14 +400,14 @@ function renderPlayers(){
       </label>
       </td>
       <td>
-      <select onchange="updatePlayerFC('${p.id}', this.value)">
+      <select onchange="updatePlayerFC('${p.id}', this.value)" ${!isAdmin?"disabled":""}>
         ${fcOptions(p.fc || "")}
       </select>
       </td>
       <td>
-      <label><input type="checkbox" ${(p.t11||[]).includes("盾")?"checked":""} onchange="updatePlayerT11('${p.id}','盾',this.checked)">T11盾</label>
-      <label><input type="checkbox" ${(p.t11||[]).includes("槍")?"checked":""} onchange="updatePlayerT11('${p.id}','槍',this.checked)">T11槍</label>
-      <label><input type="checkbox" ${(p.t11||[]).includes("弓")?"checked":""} onchange="updatePlayerT11('${p.id}','弓',this.checked)">T11弓</label>
+      <label><input type="checkbox" ${(p.t11||[]).includes("盾")?"checked":""} onchange="updatePlayerT11('${p.id}','盾',this.checked)" ${!isAdmin?"disabled":""}>T11盾</label>
+      <label><input type="checkbox" ${(p.t11||[]).includes("槍")?"checked":""} onchange="updatePlayerT11('${p.id}','槍',this.checked)" ${!isAdmin?"disabled":""}>T11槍</label>
+      <label><input type="checkbox" ${(p.t11||[]).includes("弓")?"checked":""} onchange="updatePlayerT11('${p.id}','弓',this.checked)" ${!isAdmin?"disabled":""}>T11弓</label>
       </td>
       <td>
       <button onclick="deletePlayer('${p.id}')">削除</button>
@@ -655,5 +656,5 @@ window.copyAllianceT11Counts = copyAllianceT11Counts
 window.bulkChangeAlliance = bulkChangeAlliance
 window.applyDestinyOverlay = applyDestinyOverlay
 
-window.addEventListener("scroll", applyDestinyOverlay)
-window.addEventListener("resize", applyDestinyOverlay)
+// scroll/resize リスナーは削除（モバイルでループの原因になるため）
+// applyDestinyOverlay は renderPlayers() 内で都度呼ばれるため不要
