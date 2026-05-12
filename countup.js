@@ -42,7 +42,7 @@ function renderCountup(){
     html += `<div class="result-group">`
     html += `<h3>${escaped}&nbsp;<button onclick="removeGroupSection('${escaped}')">削除</button></h3>`
 
-    html += `<table>
+    html += `<div class="table-wrap"><table>
     <tr>
       <th>順</th>
       <th>集結</th>
@@ -78,7 +78,7 @@ function renderCountup(){
       html += `</tr>`
     })
 
-    html += `</table>`
+    html += `</table></div>`
     html += `<button onclick="addCountupRow('${escaped}')">行追加</button>`
     html += `</div>`
   })
