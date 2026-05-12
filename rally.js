@@ -434,10 +434,7 @@ function renderRally(){
         <td>${escapeHtml(h.need)}</td>
 
         <td>
-        ${index === 0 ? `
-          <button onclick="startEdit('${r.id}')">更新</button>
-          <button onclick="deleteRally('${r.id}')">削除</button>
-        ` : ""}
+        ${index === 0 ? `<div style="white-space:nowrap;"><button onclick="startEdit('${r.id}')">更新</button> <button onclick="deleteRally('${r.id}')">削除</button></div>` : ""}
         </td>
         </tr>
         `
