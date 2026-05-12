@@ -191,129 +191,20 @@ margin:4px 0;
   border-color:#22c55e;
 }
 
-/* ★ディスティニー × active のときだけ上書き */
-.active-rally.destiny-highlight{
-  background: #4a3b00 !important;   /* 濃い金系 */
+/* =========================
+★ ディスティニー（黄色背景のみ）
+========================= */
+.destiny-highlight{
+  background: #4a3b00;
 }
 
-.active-rally.destiny-highlight td{
-  background: #4a3b00 !important;
+.destiny-highlight td{
   border-color: gold;
 }
 
-/* =========================
-★ Destiny 共通（枠＋発光）
-========================= */
-.destiny-highlight{
-border: 2px solid gold !important;
-box-shadow:
-0 0 8px gold,
-0 0 16px gold,
-0 0 24px rgba(255,215,0,0.6);
-animation: glow 1.5s infinite alternate;
-}
-
-@keyframes glow{
-from{
-box-shadow:
-0 0 6px gold,
-0 0 12px gold;
-}
-to{
-box-shadow:
-0 0 12px gold,
-0 0 24px gold,
-0 0 36px rgba(255,215,0,0.8);
-}
-}
-
-/* =========================
-★ プレイヤー一覧（元アイコン）
-========================= */
-.destiny-highlight td:nth-child(2){
-position: relative;
-overflow: hidden;
-}
-
-.destiny-highlight td:nth-child(2)::before{
-content: "";
-position: absolute;
-
-top: 65%;
-left: 50%;
-transform: translate(-50%, -50%);
-
-width: 120px;
-height: 120px;
-
-background: url("destiny.png") no-repeat center;
-background-size: contain;
-
-opacity: 0.5;
-pointer-events: none;
-
-z-index: 0;
-}
-
-/* =========================
-★ 所持英雄（別アイコンに差し替え）
-========================= */
-.hero-table tr.destiny-highlight td:nth-child(1){
-position: relative;
-overflow: hidden;
-}
-
-.hero-table tr.destiny-highlight td:nth-child(1)::before{
-content: "";
-position: absolute;
-
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-
-width: 120px;
-height: 120px;
-
-background: url("destiny2.png") no-repeat center; /* ★ここ違う */
-background-size: contain;
-
-opacity: 0.4;
-pointer-events: none;
-
-z-index: 0;
-}
-
-.hero-table tr.destiny-highlight td:nth-child(2)::before{
-content: none !important;
-}
-
-/* 文字は前面 */
-.destiny-highlight td{
-position: relative;
-z-index: 1;
-}
-
-/* =========================
-★ スマホ専用 ネオン（最終版）
-========================= */
-@supports (-webkit-touch-callout: none){
-.destiny-global-overlay-item{
-  background: linear-gradient(
-    90deg,
-    rgba(255,215,0,0),
-    rgba(255,215,0,1),
-    rgba(255,215,0,0)
-  );
-
-  filter: blur(8px);
-  opacity: 0.9;
-
-  animation: neon-slide 2.5s linear infinite;
-}
-
-@keyframes neon-slide{
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
+/* active-rally と重なる場合も同色を維持 */
+.active-rally.destiny-highlight,
+.active-rally.destiny-highlight td{
+  background: #4a3b00 !important;
+  border-color: gold;
 }
