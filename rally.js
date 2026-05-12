@@ -233,7 +233,7 @@ function cancelEdit(){
   renderRally()
 }
 
-async function toggleRally(id, current){
+async function toggleRally(id, current, el){
 
   const rallies = getState("rallies")
   const players = getState("players")
@@ -242,9 +242,11 @@ async function toggleRally(id, current){
 
   const leader = players.find(p=>p.id === target.leaderId)
 
-  // ★ここ追加（最重要）
+  // 参加OFFのプレイヤーは使用不可
   if(!current && leader && leader.active === false){
     alert("このプレイヤーは参加OFFのため使用できません")
+    // チェックボックスを元の状態（OFF）に戻す
+    if(el) el.checked = false
     return
   }
 
@@ -423,7 +425,7 @@ function renderRally(){
 
         <td>
         ${index === 0 ? `<label class="switch">
-        <input type="checkbox" ${r.active ? "checked" : ""} onchange="toggleRally('${r.id}', ${r.active})">
+        <input type="checkbox" ${r.active ? "checked" : ""} onchange="toggleRally('${r.id}', ${r.active}, this)">
         <span class="slider"></span>
         </label>` : ""}
         </td>

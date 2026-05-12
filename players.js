@@ -89,6 +89,19 @@ async function togglePlayer(id, current){
   if(current) update.joinTime = ""
 
   await window.db.collection("players").doc(id).update(update)
+
+  // 参加OFF にした場合、そのプレイヤーの使用中集結もすべてOFFにする
+  if(current){
+    const rallies = getState("rallies")
+    const activeRallies = rallies.filter(r => r.leaderId === id && r.active)
+    if(activeRallies.length > 0){
+      const batch = window.db.batch()
+      activeRallies.forEach(r => {
+        batch.update(window.db.collection("rallies").doc(r.id), { active: false })
+      })
+      await batch.commit()
+    }
+  }
 }
 
 async function updatePlayerTime(id, time){
